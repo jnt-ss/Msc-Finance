@@ -1,6 +1,6 @@
 ---
 title: "Asset Pricing"
-author: "Joan Antoni Segui"
+author: "Joan Antoni Seguí Serra"
 output:
   html_document:
     toc: true
