@@ -10,7 +10,7 @@ library(readxl)
 PS1Data <- read_excel("C:/Users/Jt_an/Google Drive/GSE - Finance/1 trim_/Asset pricing_/Problem Sets/PS1/PS1Data.xlsx")
 ```
 
-$\textbf{1a.}$ For each $\gamma$ compute the value of $\textit{m}$ in each year. Use then the entire time series of $m$ and $R_M$ to compute $-cov(m,R_m)$ and multiply it by the mean of $1+r$ . Plot the resulting values against all values of $\gamma$ Which of those values comes closest to the model’s theoretical prediction (mean value of $R_M-r$)?
+## $\textbf{1a.}$ For each $\gamma$ compute the value of $\textit{m}$ in each year. Use then the entire time series of $m$ and $R_M$ to compute $-cov(m,R_m)$ and multiply it by the mean of $1+r$ . Plot the resulting values against all values of $\gamma$ Which of those values comes closest to the model’s theoretical prediction (mean value of $R_M-r$)?
 
 ```{r}
 gamma<-2:100
@@ -31,7 +31,7 @@ gamma[which.min(abs(mean(PS1Data$`Rm-r`)-Rp))]
 ```
 
 
-$\textbf{1b.}$ For each $\gamma$ compute the inverse of the sample mean of $m$ and plot against all values of $\gamma$. Which of those values comes closest to the model’s theoretical prediction (mean value of $1 + r$))?
+## $\textbf{1b.}$ For each $\gamma$ compute the inverse of the sample mean of $m$ and plot against all values of $\gamma$. Which of those values comes closest to the model’s theoretical prediction (mean value of $1 + r$))?
 
 
 ```{r}
@@ -44,7 +44,7 @@ gamma[which.min(abs(rf-mean(PS1Data$r)))]
 
 ```
 
-$\textbf{1c.}$ What conclusions do you draw from these results?
+## $\textbf{1c.}$ What conclusions do you draw from these results?
 
 Given that $\gamma$ is the risk aversion coefficient it makes sense to demand higher risk premium when your risk aversion is higher. Taking that particular utility function to the data gives us this positive relation between $\gamma$ and risk premium. When observing the mean of $R_m - r$, i.e., the realized risk premium, comparing to our estimations we see that the model implies a $\gamma=87$ in order to obtain the same results as in the data. The implication of such $\gamma$ is that, if this model is correct, we are extremely risk averse. In reality the estimations of the risk aversion coefficient are not that higher.
 
@@ -53,7 +53,7 @@ Since $(1+r)=1/E(m)$, $m=dc^{-\gamma}$ and most of $dc$ observations are higher 
 We can conclude that taking that model to the data we have to reject the model. If the model was well specified, the values of $\gamma$ in each case should be the same.
 
 
-$\textbf{2b.}$ Show that the stochastic discount factor with $\delta=1$ in this model becomes
+## $\textbf{2b.}$ Show that the stochastic discount factor with $\delta=1$ in this model becomes
 
 \begin{equation} 
 m=\frac{U'(c_t)}{U'(c_{t-1})}=\left(\frac{c_t}{c_{t-1}}\right)^{-\gamma}\left(\frac{x_{t-1}}{x_{t-2}}\right)^{\gamma-1}
@@ -72,12 +72,7 @@ $\frac{U'(c_t)}{U'(c_{t-1})}=\frac{\frac{{c_t}^{-\gamma}}{{x_{t-1}}^{1-\gamma}}}
 
 
 
-$\textbf{2c.}$ For each $\gamma$ compute the value of m in each year replacing both c and x in the
-equation above with aggregate consumption. Note that you will lose one year of
-our sample since m involves both current and lagged consumption growth.
-Compute then for each $\gamma$ the value of $-cov(m,R_m)$, multiply it by the mean of $1+r$
-and plot the resulting values against all values of $\gamma$ Which of those values comes
-closest to the model’s theoretical prediction (mean value of $R_M-r$)?
+## $\textbf{2c.}$ For each $\gamma$ compute the value of m in each year replacing both c and x in the equation above with aggregate consumption. Note that you will lose one year of our sample since m involves both current and lagged consumption growth. Compute then for each $\gamma$ the value of $-cov(m,R_m)$, multiply it by the mean of $1+r$ and plot the resulting values against all values of $\gamma$ Which of those values comes closest to the model’s theoretical prediction (mean value of $R_M-r$)?
 
 ```{r}
 
@@ -106,8 +101,7 @@ gamma[which.min(abs(mean(PS1Data$`Rm-r`)-Rp_2))]
 
 
 
-$\textbf{2d.}$ Compute the inverse of the sample mean of m and plot it for all values of $\gamma$.Which
-of those values comes closest to the model’s theoretical prediction (mean value of $1 + r$))?
+## $\textbf{2d.}$ Compute the inverse of the sample mean of m and plot it for all values of $\gamma$.Which of those values comes closest to the model’s theoretical prediction (mean value of $1 + r$))?
 
 ```{r}
 rf_2<-apply(m_2,2,function(x) 1/mean(x))
@@ -122,7 +116,7 @@ gamma[which.min(abs(rf_2-mean(PS1Data$r)))]
 ```
 
 
-$\textbf{2e.}$ How does the model compare relative to the model with simpler preferences of question 1?
+## $\textbf{2e.}$ How does the model compare relative to the model with simpler preferences of question 1?
 
 
 The difference between this new model and the first one, is that this models takes into account the lagged growth in consumption. Now consumers not only care in todays change in consumption but in the previous change in consumption. Since $m=\left(\frac{c_t}{c_{t-1}}\right)^{-\gamma}\left(\frac{x_{t-1}}{x_{t-2}}\right)^{\gamma-1}$, a higher risk aversion implies that consumption tomorrow is less valuable. However, the higher the risk aversion, the higher consumers value the lagged changed in consumption.
@@ -137,9 +131,7 @@ One other difference with respect the older model is that now the risk free depe
 ```{r}
 library(ggplot2)
 ```
-a) Find the composition of two portfolios in the frontier, the mean, variance, and standard
-deviation of those portfolios, and the covariance between them. (Note: use the portfolios denoted
-by $w_1$ and $w_2$ in the slides).
+## a) Find the composition of two portfolios in the frontier, the mean, variance, and standard deviation of those portfolios, and the covariance between them. (Note: use the portfolios denoted by $w_1$ and $w_2$ in the slides).
 
 ```{r}
 IndustryMonthly=read.csv("C:/Users/Jt_an/Google Drive/GSE - Finance/1 trim_/Asset pricing_/Problem Sets/PS2/Monthly.csv", sep=";")/100
@@ -166,8 +158,7 @@ df1
 ```
 
 
-b) Denote by p and (1 - p) the weights of those two portfolios in a combined portfolio, p, and
-obtain the mean and variance of the resulting combined portfolios for different values of p.
+## b) Denote by p and (1 - p) the weights of those two portfolios in a combined portfolio, p, and obtain the mean and variance of the resulting combined portfolios for different values of p.
 
 ```{r}
 p_d=seq(-7,0,by=0.01)
@@ -195,8 +186,7 @@ for (i in (1:length(p_u))){
 u_sd_port=sqrt(u_var_port)
 ```
 
-c) Use your answers to draw the frontier in the mean-standard deviation space. Locate the
-minimum variance portfolio and the efficient frontier in the graph.
+## c) Use your answers to draw the frontier in the mean-standard deviation space. Locate the minimum variance portfolio and the efficient frontier in the graph.
 ```{r}
 mvp_sd=u_sd_port[which.min(u_sd_port)]
 mvp_r=u_ret_port[which.min(u_sd_port)]
@@ -213,10 +203,7 @@ ggplot(data=NULL,aes(u_sd_port,u_ret_port,color="efficient frontier"))+
 ```
 
 
-d) Suppose you are willing to invest in a portfolio with a standard deviation as high as 5% per
-month, but not more than that. What portfolio would you choose in order to maximize the expected
-return of your investment? Indicate the composition of the portfolio, its expected return and its
-standard deviation. (Hint: make use of the two-fund separation theorem).
+## d) Suppose you are willing to invest in a portfolio with a standard deviation as high as 5% per month, but not more than that. What portfolio would you choose in order to maximize the expected return of your investment? Indicate the composition of the portfolio, its expected return and its standard deviation. (Hint: make use of the two-fund separation theorem).
 
 ```{r}
 pos=length(u_sd_port[(u_sd_port<0.05)])
@@ -245,10 +232,7 @@ print(c("Expected Return", erp, "Standard Deviation", sdp))
 
 
 
-e) From now on suppose we introduce a risk-free asset paying an interest rate $r_f = 0.4\%$ per
-month. Find the composition of the tangency portfolio, its mean and standard deviation. Draw the
-old frontier (risky assets only) and the new frontier in the same graph and locate the risk-free asset
-and the tangency portfolio.
+## e) From now on suppose we introduce a risk-free asset paying an interest rate $r_f = 0.4\%$ per month. Find the composition of the tangency portfolio, its mean and standard deviation. Draw the old frontier (risky assets only) and the new frontier in the same graph and locate the risk-free asset and the tangency portfolio.
 
 
 ```{r}
@@ -276,7 +260,7 @@ ggplot(data=NULL, aes(u_sd_port,u_ret_port,color="old-frontier"))+
 
 
 
-f) Assume that an investor's preferences can be represented by the following expected utility function: $E(R_p)-\alpha\sigma_p^2$ with $a > 0$. Using the two-fund separation theorem, solve analytically the investor's optimal investment in the tangency portfolio, $p$, as a function of $a$,$E(R_t)$, and $\sigma_T^2$. Assuming that $a = 4$, use the previous solution to compute p as well as the investor's optimal investment in each one of the 18 assets as a fraction of her wealth. Locate the investor's optimal portfolio in the mean-standard deviation diagram.
+## f) Assume that an investor's preferences can be represented by the following expected utility function: $E(R_p)-\alpha\sigma_p^2$ with $a > 0$. Using the two-fund separation theorem, solve analytically the investor's optimal investment in the tangency portfolio, $p$, as a function of $a$,$E(R_t)$, and $\sigma_T^2$. Assuming that $a = 4$, use the previous solution to compute p as well as the investor's optimal investment in each one of the 18 assets as a fraction of her wealth. Locate the investor's optimal portfolio in the mean-standard deviation diagram.
 
 
 $Max(E(R_p)-\alpha\sigma_p^2)$ where $E(R_P)=pE(R_T)+(1-p)rf$ and $\sigma^2_P=p^2\sigma_T^2$. So we must maximize $U=pE(R_T)+(1-p)r_f-\alpha p^2\sigma_T^2$
@@ -314,8 +298,7 @@ ggplot(data=NULL, aes(u_sd_port,u_ret_port,color="Old Frontier"))+
 print(c("Portfolio Return",round(E_OP,5),"Standard Error",round(sd_OP,5)))
 ```
 
-g) Suppose now that the lending and borrowing rates for the risk-free asset are $rf_L = 0%$ and
-$rf_{B} = 0.6%$ per month, respectively. Represent graphically the new efficient frontier.
+## g) Suppose now that the lending and borrowing rates for the risk-free asset are $rf_L = 0%$ and $rf_{B} = 0.6%$ per month, respectively. Represent graphically the new efficient frontier.
 
 
 
@@ -373,7 +356,7 @@ Factors5[,c(2:length(Factors5))]<-Factors5[,c(2:length(Factors5))]/100
 Portfolio25[,c(2:length(Portfolio25))]<-Portfolio25[,c(2:length(Portfolio25))]/100
 ```
 
-# 1. Calculate for each one of the 25 portfolios its excess return in each month (return minus the risk-free rate) and the sample mean of the time-series of excess returns. Display mean excess returns in a 5x5 Table. Draw a 3-D chart with the values of the 5x5 matrix. What can you say from those results?
+## 1. Calculate for each one of the 25 portfolios its excess return in each month (return minus the risk-free rate) and the sample mean of the time-series of excess returns. Display mean excess returns in a 5x5 Table. Draw a 3-D chart with the values of the 5x5 matrix. What can you say from those results?
 
 ```{r}
 
@@ -393,7 +376,7 @@ persp3D(z = matrix_Ereturn, theta = 45, expand = 0.8,border = "white",
 
 One could expect that this plot would be more or less plain, meaning that all portfolios have the same excess returns. However, it can be seen how excess returns are increasing for portfolios with high book-to-market ratio and for small firms portfolios. One plausible explanation is that those factors (BM and ME) are risk factors. So, they have higher excess returns because they are riskier. Being the riskiest portolios the ones composed of low capitalized firms with high book-to-market ratios.
 
-# 2. Run a time-series OLS regression (using the entire sample period) for each portfolio j.  Construct a table like the one in question 1, with each cell containing the estimated alpha of each portfolio. Show the table graphically. What does the table suggest about the validity of the CAPM? What portfolios deviate the most from the CAPM predictions? Test the joint significance of pricing errors using the GRS test statistic.
+## 2. Run a time-series OLS regression (using the entire sample period) for each portfolio j.  Construct a table like the one in question 1, with each cell containing the estimated alpha of each portfolio. Show the table graphically. What does the table suggest about the validity of the CAPM? What portfolios deviate the most from the CAPM predictions? Test the joint significance of pricing errors using the GRS test statistic.
 
 
 ```{r}
@@ -429,7 +412,7 @@ The p-value of the GRS test is 3.943519e-12, meaning that we reject the null hyp
 
 
 
-# 3. Run a single cross-sectional OLS regression of mean excess returns on betas estimated in the previous question. Test the CAPM.
+## 3. Run a single cross-sectional OLS regression of mean excess returns on betas estimated in the previous question. Test the CAPM.
 
 
 ```{r}
@@ -455,7 +438,7 @@ The CAPM implies that $\gamma_0=0$ (we substracted risk free from the returns, s
 
 
 
-# 4. Implement the two-pass approach of Fama-MacBeth. First, estimate each stock's beta for each month t using a time series regression with 3 years of previous monthly data, i.e., from t - 36 to t - 1. Then, run a cross-sectional regression at each time t of excess returns on betas at time t. Compute the Fama-MacBeth coefficients and their standard errors. Compare these standard errors with the OLS standard errors from the previous question. Did you expect those differences? Explain why. Test again the CAPM using the Fama-MacBeth estimators and their standard errors.
+## 4. Implement the two-pass approach of Fama-MacBeth. First, estimate each stock's beta for each month t using a time series regression with 3 years of previous monthly data, i.e., from t - 36 to t - 1. Then, run a cross-sectional regression at each time t of excess returns on betas at time t. Compute the Fama-MacBeth coefficients and their standard errors. Compare these standard errors with the OLS standard errors from the previous question. Did you expect those differences? Explain why. Test again the CAPM using the Fama-MacBeth estimators and their standard errors.
 
 
 ```{r}
@@ -496,7 +479,7 @@ assumption about the errors in the CSR.
 Testing again that $\gamma_0=0$ and $\gamma_1=E(R_M-R_f)$ we reject both null hypothesis with p-value of $p-value_{\gamma_0}=0.000539865$ and $p-value_{\gamma_1}=0.01068794$. So we reject again CAPM.
 
 
-# 5. Repeat question 2 for the FF 3 factor model and the FF 5 factor model, i.e., estimate portfolio alphas from a single time-series regression of portfolio excess returns on the factors, display estimated alphas and plot them. Interpret your results.
+## 5. Repeat question 2 for the FF 3 factor model and the FF 5 factor model, i.e., estimate portfolio alphas from a single time-series regression of portfolio excess returns on the factors, display estimated alphas and plot them. Interpret your results.
 
 ```{r}
 
