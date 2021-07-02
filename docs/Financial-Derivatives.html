@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="Alejandro Garcia, Thomas Kelly, Joan Antoni Seguí Serra" />
+
+
+<title>Pricing Financial Derivatives I &amp; II</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/anchor-sections-1.0/anchor-sections.css" rel="stylesheet" />
+<script src="site_libs/anchor-sections-1.0/anchor-sections.js"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #ffffff;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">MSc Finance</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="Asset-Pricing-Problem-Sets.html">Asset Pricing</a>
+</li>
+<li>
+  <a href="Financial-Derivatives.html">Pricing Financial Derivatives I &amp; II</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Pricing Financial Derivatives I &amp; II</h1>
+<h4 class="author">Alejandro Garcia, Thomas Kelly, Joan Antoni Seguí Serra</h4>
+
+</div>
+
+<div id="TOC">
+<ul>
+<li><a href="#problem-set-1">Problem Set 1</a></li>
+<li><a href="#problem-set-2">Problem Set 2</a></li>
+<li><a href="#problem-set-3">Problem Set 3</a></li>
+<li><a href="#problem-set-4">Problem Set 4</a></li>
+</ul>
+</div>
+
+<div id="problem-set-1" class="section level1">
+<h1>Problem Set 1</h1>
+<div id="simulation-of-log-normal-prices-r" class="section level2">
+<h2>Simulation of log-normal prices (R)</h2>
+<p>We first define a function that simulates the process and run it with some baseline parameters</p>
+<pre class="r"><code>#series is the function that simulates trajectories of log-normal process
+series&lt;-function(r,mu,t,n,v,s0=100){
+if(abs((mu-r)/v)&lt;sqrt(n/t)){
+set.seed(10) #important to allow replication
+step&lt;-t/n
+real&lt;-c(log(s0))
+p&lt;-(exp((r-mu)*(step))-exp((-v)*sqrt(step)))/(exp((v)*sqrt(step))-exp((-v)*sqrt(step)))
+for(i in 1:n){
+  real[1+i]&lt;-real[i]+v*sqrt(step)*sample(c(-1,1),1,TRUE,prob=c(p,1-p))+mu*step
+ } 
+return(real)}#returns the series
+else{print(&quot;Parameters violate no-arbitrage condition.&quot;)
+break}
+}</code></pre>
+<p>Let’s start with <span class="math inline">\(\mu\)</span>. Now we want to simulate the process for varying parameters. We are taking a baseline setting in which <span class="math inline">\(r=5\%\)</span>, <span class="math inline">\(t=1\)</span> and <span class="math inline">\(\sigma=30\%\)</span> and varying through a sequence of <span class="math inline">\(\mu\)</span> to simulate trajectories. Note that the no-arbitrage condition that <span class="math inline">\(abs(\frac{\mu-r}{\sigma})&lt;\sqrt{\frac{N}{T}}\)</span> is satisfied in all cases (also note that the code would warn if it wasnt the case)</p>
+<pre class="r"><code>funmu&lt;-function(min,max,increment,n){
+  vec&lt;-seq(min,max,increment)
+  m&lt;-matrix(NA,nrow=(n+1),ncol=length(vec))
+  for (i in 1:length(vec)){
+    for (j in 1:(n+1)){
+      m[j,i]&lt;-series(r=.05,mu=vec[i],t=1,n,v=.3)[j] #This is the relevant line for selecting the varying parameter (Mu in this case)
+    }
+    dat&lt;-cbind(N=c(0:n+1),as.data.frame(m)) 
+    names(dat)&lt;-c(&quot;N&quot;,paste0(vec*100,&quot;%&quot;))
+  }
+  datmelt&lt;-melt(dat,id.vars=&quot;N&quot;)
+  ggplot(datmelt, aes(x = N, y = value, color=variable))+theme_bw()+xlab(&quot;N&quot;)+ylab(&quot;log_St&quot;)+geom_line()+ theme(legend.title = element_blank())+ggtitle(&quot;Process simulation with varying drifts (Mu)&quot;)
+}
+#Simulating for a set of drift parameters
+funmu(-.06,.06,.015,10)</code></pre>
+<pre><code>## Warning in melt(dat, id.vars = &quot;N&quot;): The melt generic in data.table has been passed a data.frame and will attempt to redirect to the
+## relevant reshape2 method; please note that reshape2 is deprecated, and this redirection is now deprecated as well. To continue using melt
+## methods from reshape2 while both libraries are attached, e.g. melt.list, you can prepend the namespace like reshape2::melt(dat). In the
+## next version, this warning will become an error.</code></pre>
+<p><img src="Financial-Derivatives_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<pre class="r"><code>funmu(-.06,.06,.015,100)</code></pre>
+<pre><code>## Warning in melt(dat, id.vars = &quot;N&quot;): The melt generic in data.table has been passed a data.frame and will attempt to redirect to the
+## relevant reshape2 method; please note that reshape2 is deprecated, and this redirection is now deprecated as well. To continue using melt
+## methods from reshape2 while both libraries are attached, e.g. melt.list, you can prepend the namespace like reshape2::melt(dat). In the
+## next version, this warning will become an error.</code></pre>
+<p><img src="Financial-Derivatives_files/figure-html/unnamed-chunk-3-2.png" width="672" /></p>
+<pre class="r"><code>funmu(-.06,.06,.015,1000)</code></pre>
+<pre><code>## Warning in melt(dat, id.vars = &quot;N&quot;): The melt generic in data.table has been passed a data.frame and will attempt to redirect to the
+## relevant reshape2 method; please note that reshape2 is deprecated, and this redirection is now deprecated as well. To continue using melt
+## methods from reshape2 while both libraries are attached, e.g. melt.list, you can prepend the namespace like reshape2::melt(dat). In the
+## next version, this warning will become an error.</code></pre>
+<p><img src="Financial-Derivatives_files/figure-html/unnamed-chunk-3-3.png" width="672" /></p>
+<p>The simulations are symmetric, being the pivot the sign of <span class="math inline">\(\mu\)</span>. For lower N we can see how there exists drift. For positivie <span class="math inline">\(\mu\)</span> the path of the stock is increasing. In the other case, where <span class="math inline">\(\mu\)</span> is negative, the process has a negative drift. As <span class="math inline">\(N\)</span> increases we reach the limiting process, where the drift (<span class="math inline">\(\mu\)</span>) plays no part. <span class="math inline">\(S_T\)</span> as N goes to infinity, tends to a a process which is a martingale.</p>
+<p><span class="math display">\[S_0e^{\sigma N(0,T)+(r-\frac{1}{2}\sigma^2)T}\]</span></p>
+<p>Now <span class="math inline">\(\sigma\)</span>. We are taking a baseline setting in which <span class="math inline">\(r=5\%\)</span>, <span class="math inline">\(t=1\)</span> and <span class="math inline">\(\mu=5.5\%\)</span> and varying through a sequence of <span class="math inline">\(\sigma\)</span> to simulate trajectories</p>
+<pre class="r"><code>funsigma&lt;-function(min,max,increment,n){
+  vec&lt;-seq(min,max,increment)
+  m&lt;-matrix(NA,nrow=(n+1),ncol=length(vec))
+  for (i in 1:length(vec)){
+    for (j in 1:(n+1)){
+      m[j,i]&lt;-series(r=.05,mu=.055,t=1,n,v=vec[i])[j] #This is the relevant line for selecting the varying parameter (Sigma in this case)
+    }
+    dat&lt;-cbind(N=c(0:n+1),as.data.frame(m)) 
+    names(dat)&lt;-c(&quot;N&quot;,paste0(vec*100,&quot;%&quot;))
+  }
+  datmelt&lt;-melt(dat,id.vars=&quot;N&quot;)
+  ggplot(datmelt, aes(x = N, y = value, color=variable))+theme_bw()+xlab(&quot;N&quot;)+ylab(&quot;log_St&quot;)+geom_line()+ theme(legend.title = element_blank())+ggtitle(&quot;Process simulation with varying volatilities (Sigma)&quot;)
+}
+#Simulating for a set of volatility parameters
+funsigma(.1,.6,.1,10)</code></pre>
+<pre><code>## Warning in melt(dat, id.vars = &quot;N&quot;): The melt generic in data.table has been passed a data.frame and will attempt to redirect to the
+## relevant reshape2 method; please note that reshape2 is deprecated, and this redirection is now deprecated as well. To continue using melt
+## methods from reshape2 while both libraries are attached, e.g. melt.list, you can prepend the namespace like reshape2::melt(dat). In the
+## next version, this warning will become an error.</code></pre>
+<p><img src="Financial-Derivatives_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<pre class="r"><code>funsigma(.1,.6,.1,100)</code></pre>
+<pre><code>## Warning in melt(dat, id.vars = &quot;N&quot;): The melt generic in data.table has been passed a data.frame and will attempt to redirect to the
+## relevant reshape2 method; please note that reshape2 is deprecated, and this redirection is now deprecated as well. To continue using melt
+## methods from reshape2 while both libraries are attached, e.g. melt.list, you can prepend the namespace like reshape2::melt(dat). In the
+## next version, this warning will become an error.</code></pre>
+<p><img src="Financial-Derivatives_files/figure-html/unnamed-chunk-4-2.png" width="672" /></p>
+<pre class="r"><code>funsigma(.1,.6,.1,1000)</code></pre>
+<pre><code>## Warning in melt(dat, id.vars = &quot;N&quot;): The melt generic in data.table has been passed a data.frame and will attempt to redirect to the
+## relevant reshape2 method; please note that reshape2 is deprecated, and this redirection is now deprecated as well. To continue using melt
+## methods from reshape2 while both libraries are attached, e.g. melt.list, you can prepend the namespace like reshape2::melt(dat). In the
+## next version, this warning will become an error.</code></pre>
+<p><img src="Financial-Derivatives_files/figure-html/unnamed-chunk-4-3.png" width="672" /></p>
+<p>Changes in <span class="math inline">\(\sigma\)</span> do exhibit changes in the limiting process and not only in the cases where N is small. The results are aligned with the intuition that higher values of sigma leads to a process which exhibits more volatility. The random shocks are amplified for higher <span class="math inline">\(\sigma\)</span>, that’s why the movements are bigger. Note that, in the extreme case where <span class="math inline">\(\sigma=0\)</span> the whole process would be a straight line.</p>
+<p>Now <span class="math inline">\(r\)</span>. We are taking a baseline setting in which <span class="math inline">\(\sigma=30\%\)</span>, <span class="math inline">\(t=1\)</span> and <span class="math inline">\(\mu=5.5\%\)</span> and varying through a sequence of <span class="math inline">\(r\)</span> to simulate trajectories</p>
+<pre class="r"><code>funrf&lt;-function(min,max,increment,n){
+  vec&lt;-seq(min,max,increment)
+  m&lt;-matrix(NA,nrow=(n+1),ncol=length(vec))
+  for (i in 1:length(vec)){
+    for (j in 1:(n+1)){
+      m[j,i]&lt;-series(r=vec[i],mu=.055,t=1,n,v=.3)[j] #This is the relevant line for selecting the varying parameter (Sigma in this case)
+    }
+    dat&lt;-cbind(N=c(0:n+1),as.data.frame(m)) 
+    names(dat)&lt;-c(&quot;N&quot;,paste0(vec*100,&quot;%&quot;))
+  }
+  datmelt&lt;-melt(dat,id.vars=&quot;N&quot;)
+  ggplot(datmelt, aes(x = N, y = value, color=variable))+theme_bw()+xlab(&quot;N&quot;)+ylab(&quot;log_St&quot;)+geom_line()+ theme(legend.title = element_blank())+ggtitle(&quot;Process simulation with varying risk-free rates (r)&quot;)
+}
+#Simulating for a set risk-free rates
+funrf(.01,.15,.01,10)</code></pre>
+<pre><code>## Warning in melt(dat, id.vars = &quot;N&quot;): The melt generic in data.table has been passed a data.frame and will attempt to redirect to the
+## relevant reshape2 method; please note that reshape2 is deprecated, and this redirection is now deprecated as well. To continue using melt
+## methods from reshape2 while both libraries are attached, e.g. melt.list, you can prepend the namespace like reshape2::melt(dat). In the
+## next version, this warning will become an error.</code></pre>
+<p><img src="Financial-Derivatives_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<pre class="r"><code>funrf(.01,.15,.01,100)</code></pre>
+<pre><code>## Warning in melt(dat, id.vars = &quot;N&quot;): The melt generic in data.table has been passed a data.frame and will attempt to redirect to the
+## relevant reshape2 method; please note that reshape2 is deprecated, and this redirection is now deprecated as well. To continue using melt
+## methods from reshape2 while both libraries are attached, e.g. melt.list, you can prepend the namespace like reshape2::melt(dat). In the
+## next version, this warning will become an error.</code></pre>
+<p><img src="Financial-Derivatives_files/figure-html/unnamed-chunk-5-2.png" width="672" /></p>
+<pre class="r"><code>funrf(.01,.15,.01,1000)</code></pre>
+<pre><code>## Warning in melt(dat, id.vars = &quot;N&quot;): The melt generic in data.table has been passed a data.frame and will attempt to redirect to the
+## relevant reshape2 method; please note that reshape2 is deprecated, and this redirection is now deprecated as well. To continue using melt
+## methods from reshape2 while both libraries are attached, e.g. melt.list, you can prepend the namespace like reshape2::melt(dat). In the
+## next version, this warning will become an error.</code></pre>
+<p><img src="Financial-Derivatives_files/figure-html/unnamed-chunk-5-3.png" width="672" /></p>
+<p>This case is comparable with the <span class="math inline">\(\mu\)</span> case. It only exhibitis effects when N is small. The effect of varying <span class="math inline">\(r\)</span> through positive values can be viewed as somewhat the opposite of <span class="math inline">\(mu\)</span> as they have different signs in the process’ formula. This means that under a higher <span class="math inline">\(r\)</span> while keeping all else constant, implying a lower market-price of risk, the process will tend to exhibit a flatter or even negative trend. As in the case of <span class="math inline">\(\mu\)</span>, in the limiting case this effect fades. That is because we have discounted prices using the risk neutral probability to be martingales p such that satisfies this to be a martingale process.</p>
+</div>
+</div>
+<div id="problem-set-2" class="section level1">
+<h1>Problem Set 2</h1>
+<p>In what follows we detail our answers to Problem Set 2. Of note, the intuition to each question’s answer is presented at the end of the code that generated the intermedite results of the analysis.</p>
+<div id="exercise-1" class="section level2">
+<h2>Exercise 1</h2>
+<p>1.1) We start by simulating an arbitrary (40) paths of the stock price and plotting them. These are generated under the set of baseline parameters given in the hw.</p>
+<pre class="r"><code>#Baseline parameters
+s0&lt;-100
+r&lt;-.05/2 #annualized short rate for 6 months
+t&lt;-1/2 #6 month period
+n&lt;-1000
+vols&lt;-c(.17,.15,.13,.12)
+#This function generates paths for the stock price with 
+#time-dependent volatility (piecewise as specified in PS2)
+stock_path&lt;-function(t,n,r,vols,s0=100){
+  i&lt;-(t/n)
+  path&lt;-c(s0)
+ for (j in 1:n){
+    if(i&lt;(1/6)*t)# vol of 17% for month &lt;1
+      {path[j+1]&lt;-path[j]*(1+r*(t/n)+vols[1]*rnorm(1,0,(sqrt(t/n))))
+    i&lt;-i+(t/n)}
+    else if (i&gt;=(1/6)*t&amp;i&lt;(3/6)*t)# vol of 15% for  1&lt;=month&lt;3
+      {path[j+1]&lt;-path[j]*(1+r*(t/n)+vols[2]*rnorm(1,0,(sqrt(t/n)))) 
+    i&lt;-i+(t/n)}
+    else if (i&gt;=(3/6)*t&amp;i&lt;(5/6)*t)# vol of 13% for  3&lt;=month&lt;5
+      {path[j+1]&lt;-path[j]*(1+r*(t/n)+vols[3]*rnorm(1,0,(sqrt(t/n))))
+    i&lt;-i+(t/n)}# vol of 12% for month 6 (last month)
+    else (path[j+1]&lt;-path[j]*(1+r*(t/n)+vols[4]*rnorm(1,0,(sqrt(t/n)))))
+ }
+return(path)
+}
+#Now we want to simulate &#39;q&#39; paths with the 
+#same parameters (several draws from Normal for vol term) and plot them
+paths&lt;-function(q,t,n,r,vols,s0=100){
+  m&lt;-c()
+  for (i in 1:q){
+    set.seed(i*32)
+    m&lt;-cbind(m,stock_path(t,n,r,vols))
+    dat&lt;-cbind(id=c(0:n+1),as.data.frame(m))
+  }
+  datmelt&lt;-melt(dat,id.vars=&quot;id&quot;)
+  ggplot(datmelt, 
+         aes(x = id, y = value, color=variable))+theme_bw()+
+    xlab(&quot;N=1000&quot;)+ylab(&quot;St&quot;)+geom_line()+ theme(legend.position = &quot;none&quot;)+
+    ggtitle(paste0(q,&quot; possible paths for the stock price&quot;))
+}
+paths(40,t,n,r,vols)</code></pre>
+<pre><code>## Warning in melt(dat, id.vars = &quot;id&quot;): The melt generic in data.table has been passed a data.frame and will attempt to redirect to the
+## relevant reshape2 method; please note that reshape2 is deprecated, and this redirection is now deprecated as well. To continue using melt
+## methods from reshape2 while both libraries are attached, e.g. melt.list, you can prepend the namespace like reshape2::melt(dat). In the
+## next version, this warning will become an error.</code></pre>
+<p><img src="Financial-Derivatives_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p>1.2) Next we plot the path of the stock for one of the potential realizations shown before.</p>
+<pre class="r"><code>#Now we recover only one path for the stock (first realization from 40 above)
+paths_frame&lt;-function(q,t,n,r,vols,s0=100){
+  m&lt;-c()
+  for (i in 1:q){
+    set.seed(i*32)
+    m&lt;-cbind(m,stock_path(t,n,r,vols))
+    dat&lt;-cbind(id=c(0:n+1),as.data.frame(m))
+  }
+  datmelt&lt;-melt(dat,id.vars=&quot;id&quot;)
+  return(datmelt)
+}
+a_path&lt;-paths_frame(1,t,n,r,vols)</code></pre>
+<pre><code>## Warning in melt(dat, id.vars = &quot;id&quot;): The melt generic in data.table has been passed a data.frame and will attempt to redirect to the
+## relevant reshape2 method; please note that reshape2 is deprecated, and this redirection is now deprecated as well. To continue using melt
+## methods from reshape2 while both libraries are attached, e.g. melt.list, you can prepend the namespace like reshape2::melt(dat). In the
+## next version, this warning will become an error.</code></pre>
+<pre class="r"><code>ggplot(a_path, aes(x = id, y = value, color=variable))+theme_bw()+
+  xlab(&quot;N=1000&quot;)+ylab(&quot;St&quot;)+geom_line()+theme(legend.position = &quot;none&quot;)+
+  ggtitle(paste0(&quot;A given path for the stock price&quot;))</code></pre>
+<p><img src="Financial-Derivatives_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<pre class="r"><code>st&lt;-a_path$value #Saving series into a vector</code></pre>
+<p>1.3.a) A first step in simulating the path of the Call price is to compute implied volatility at each “infinitesimal” time step. We show our approach to this procedure in the following chunk of code. Note that we are using the step-wise decreasing volatility we originally interpreted from the problem set as an input for implied volatility computations.</p>
+<pre class="r"><code>#Building a vector that matches the size and frequency of the stock price 
+#at each time step with the corresponding squared volatility (piecewise)
+vol_path&lt;-function(t,n,r,vols,vol0=vols[1]^2){
+  i&lt;-(t/n)
+  path&lt;-c(vol0)
+ for (j in 1:n){
+    if(i&lt;(1/6)*t){path[j+1]&lt;-vols[1]^2# vol of 17% for month &lt;1
+    i&lt;-i+(t/n)}
+    else if (i&gt;=(1/6)*t&amp;i&lt;(3/6)*t){path[j+1]&lt;-vols[2]^2 # vol of 15% for  1&lt;=month&lt;3
+    i&lt;-i+(t/n)}
+    else if (i&gt;=(3/6)*t&amp;i&lt;(5/6)*t){path[j+1]&lt;-vols[3]^2# vol of 13% for  3&lt;=month&lt;5
+    i&lt;-i+(t/n)}
+    else (path[j+1]&lt;-vols[4]^2)# vol beyond 5th month
+ }
+return(path)
+}
+sqrvolpath&lt;-vol_path(t,n,r,vols)
+#Implied volatility path
+implied_vol&lt;-function(vpath,t,n){step&lt;-(t/n)
+path&lt;-c()
+ for (j in 1:(n+1)){
+ path[j]&lt;-sqrt(1/(length(vpath)-j*step))*sqrt(sum(vpath[j:length(vpath)]))
+ }
+return(path)
+}
+#Storing series into a vector for further computations
+impvolvec&lt;-implied_vol(sqrvolpath,1/2,n)
+impvolvec_df&lt;-as.data.frame(cbind(id=seq(1,length(impvolvec),1),impvolvec*100))
+#Plotting
+ggplot(melt(impvolvec_df,id.vars=&quot;id&quot;), aes(x = id, y = value, color=variable))+
+  theme_bw()+xlab(&quot;N=1000&quot;)+ylab(&quot;Sigma (%)&quot;)+geom_line()+
+  theme(legend.position = &quot;none&quot;)+ggtitle(paste0(&quot;Implied volatility path&quot;))</code></pre>
+<pre><code>## Warning in melt(impvolvec_df, id.vars = &quot;id&quot;): The melt generic in data.table has been passed a data.frame and will attempt to
+## redirect to the relevant reshape2 method; please note that reshape2 is deprecated, and this redirection is now deprecated as well.
+## To continue using melt methods from reshape2 while both libraries are attached, e.g. melt.list, you can prepend the namespace like
+## reshape2::melt(impvolvec_df). In the next version, this warning will become an error.</code></pre>
+<p><img src="Financial-Derivatives_files/figure-html/unnamed-chunk-8-1.png" width="672" /> 1.3.b) We now have all the necessary inputs to compute the value of the call at every small time step between 0 and month 6.</p>
+<pre class="r"><code># A function for computing the B&amp;S price path of a call over the time steps
+call &lt;- function(s, k, r, t, sigma) {call&lt;-c()
+for (i in 1:length(s)-1){t&lt;-.5-(i/(n*2))
+  d1  &lt;-  (log(s[i]/k) + (r + sigma[i]^2/2)*t) / (sigma[i]*sqrt(t))
+  d2  &lt;-  d1 - sigma[i]*sqrt(t)
+  call[i]&lt;-s[i]*pnorm(d1)-k*exp(-r*t)*pnorm(d2)
+ }
+return(call)
+}
+call_price&lt;-call(st,100,r,t,impvolvec)
+#Now plotting
+ggplot(melt(as.data.frame(cbind(id=seq(1,length(call_price),1),call_price)),
+            id.vars=&quot;id&quot;),aes(x = id, y = value, color=variable))+theme_bw()+
+  xlab(&quot;N=1000&quot;)+ylab(&quot;$&quot;)+geom_line()+ theme(legend.position = &quot;none&quot;)+
+  ggtitle(paste0(&quot;Call price path&quot;))</code></pre>
+<pre><code>## Warning in melt(as.data.frame(cbind(id = seq(1, length(call_price), 1), : The melt generic in data.table has been passed a data.frame and
+## will attempt to redirect to the relevant reshape2 method; please note that reshape2 is deprecated, and this redirection is now deprecated
+## as well. To continue using melt methods from reshape2 while both libraries are attached, e.g. melt.list, you can prepend the namespace
+## like reshape2::melt(as.data.frame(cbind(id = seq(1, length(call_price), 1), call_price))). In the next version, this warning will become an
+## error.</code></pre>
+<p><img src="Financial-Derivatives_files/figure-html/unnamed-chunk-9-1.png" width="672" /> 1.3. c) A number of functions for calculating daily delta, and the daily hedging error are defined in this chunk.</p>
+<pre class="r"><code>#Next step is simulating the hedging portfolio assuming daily rebalancing
+#First we need the indices of 180 (i.e. .5*1/360) steps of the stock price
+indices&lt;-round(seq(1,1001,1*(1000/180)))
+indices[length(indices)]&lt;-1000
+st_daily&lt;-st[indices]
+call_daily&lt;-call_price[indices]
+r1&lt;-r*(1/180) #Short rate for daily rebalancing
+#Now we compute daily delta
+a&lt;-c()
+b&lt;-c()
+for(i in 1:length(st_daily)){
+  a[i]&lt;-(call_daily[i+1]-call_daily[i]*exp(r1))
+}
+
+for(i in 1:length(st_daily)){
+  b[i]&lt;-(st_daily[i+1]-st_daily[i]*exp(r1))
+}
+
+delta&lt;-a/b
+delta&lt;-delta[-length(delta)]
+delta[which.min(delta)]&lt;-mean(delta[which.min(delta)-1],
+                              delta[which.min(delta)+1])
+ggplot(melt(as.data.frame(cbind(id=seq(1,length(delta),1),delta)),
+id.vars=&quot;id&quot;),aes(x = id, y = value, color=variable))+theme_bw()+
+xlab(&quot;N=180&quot;)+ylab(&quot;&quot;)+geom_line()+ theme(legend.position = &quot;none&quot;)+
+ggtitle(paste0(&quot;Daily rebalanced delta of the hedging portfolio&quot;)) #plot</code></pre>
+<pre><code>## Warning in melt(as.data.frame(cbind(id = seq(1, length(delta), 1), delta)), : The melt generic in data.table has been passed a data.frame
+## and will attempt to redirect to the relevant reshape2 method; please note that reshape2 is deprecated, and this redirection is now
+## deprecated as well. To continue using melt methods from reshape2 while both libraries are attached, e.g. melt.list, you can prepend the
+## namespace like reshape2::melt(as.data.frame(cbind(id = seq(1, length(delta), 1), delta))). In the next version, this warning will become an
+## error.</code></pre>
+<p><img src="Financial-Derivatives_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+<pre class="r"><code>#Now we define a function to compute the hedging portfolio recursively
+hedg_port_daily&lt;-c(call_daily[1])
+for(i in 2:180){
+  hedg_port_daily[i]&lt;-(hedg_port_daily[i-1]*exp(-r1))+
+  delta[i-1]*(st_daily[i]-st_daily[i-1])
+}
+#Plot of the call value (continous) v hedging portfolio value
+
+ggplot(melt(as.data.frame(cbind(id=seq(1,length(hedg_port_daily),1),
+ &quot;Hedging portfolio&quot;=hedg_port_daily,&quot;Call&quot;=call_daily[-length(call_daily)])),
+id.vars=&quot;id&quot;),aes(x = id, y = value, color=variable))+theme_bw()+
+xlab(&quot;N=180&quot;)+ylab(&quot;$&quot;)+geom_line()+ 
+theme(legend.title = element_blank())+
+  ggtitle(paste0(&quot;Daily call price v hedging portfolio value&quot;)) </code></pre>
+<pre><code>## Warning in melt(as.data.frame(cbind(id = seq(1, length(hedg_port_daily), : The melt generic in data.table has been passed a data.frame and
+## will attempt to redirect to the relevant reshape2 method; please note that reshape2 is deprecated, and this redirection is now deprecated
+## as well. To continue using melt methods from reshape2 while both libraries are attached, e.g. melt.list, you can prepend the namespace
+## like reshape2::melt(as.data.frame(cbind(id = seq(1, length(hedg_port_daily), 1), `Hedging portfolio` = hedg_port_daily, Call = call_daily[-
+## length(call_daily)]))). In the next version, this warning will become an error.</code></pre>
+<p><img src="Financial-Derivatives_files/figure-html/unnamed-chunk-10-2.png" width="672" /></p>
+<pre class="r"><code>#Now we want to plot the hedging error itself
+hedge_error&lt;-hedg_port_daily-call_daily[-length(call_daily)]
+#plot(hedge_error,type=&#39;l&#39;)
+
+ggplot(melt(as.data.frame(cbind(id=seq(1,length(hedge_error),1),
+hedge_error)),id.vars=&quot;id&quot;),aes(x = id, y = value, color=variable))+
+theme_bw()+xlab(&quot;N=180&quot;)+ylab(&quot;&quot;)+geom_line()+ theme(legend.position = &quot;none&quot;)+
+ggtitle(paste0(&quot;Daily hedging error&quot;)) #plot of delta</code></pre>
+<pre><code>## Warning in melt(as.data.frame(cbind(id = seq(1, length(hedge_error), 1), : The melt generic in data.table has been passed a data.frame and
+## will attempt to redirect to the relevant reshape2 method; please note that reshape2 is deprecated, and this redirection is now deprecated
+## as well. To continue using melt methods from reshape2 while both libraries are attached, e.g. melt.list, you can prepend the namespace like
+## reshape2::melt(as.data.frame(cbind(id = seq(1, length(hedge_error), 1), hedge_error))). In the next version, this warning will become an
+## error.</code></pre>
+<p><img src="Financial-Derivatives_files/figure-html/unnamed-chunk-10-3.png" width="672" /></p>
+<div id="interpretation-of-answers-to-question-1" class="section level3">
+<h3>Interpretation of answers to question 1</h3>
+<p>For this question we have simulated 40 paths of a stock price over a period of six months specifying that the stock follows a path in accordance with geometric Brownian motion as hypothesized in the Black-Scholes model. For the parameters of the for the stock price assuming the initial stock price of 100, interest rate r=5%, and a realized volatility path that is a step function where volatility of the stock begins at 17% in the first month, then steps down to 15% for the next two months, steps down again to 13% for two months, and finally steps down to 12% for the final month.</p>
+<p>We then choose one path of the stock over the period of 6 months and use this path to evaluate the value of a call option struck at 100 over the course of the 6 months. As can be seen in the graph, the path we have chosen is one where the stock price oscillates between ~94 and ~104 and finishes with a terminal value of 100.69. This means that the maximum intrinsic value of the option over its life is approximately $4 and its terminal value should be $0.69.</p>
+<p>As can be seen in the chart, the call price initially rallies up to roughly $7 as the stock rallies up to $103.65 at n=42. Since the option still has a long time to maturity and also is at the point where volatility is highest, the option has significant value in excess of its intrinsic value (roughly $3 of time value when measured at the peak stock price). However, the stock quickly reverses to trade below 100 and remains rangebound between 96 and 102 until n=750. During this time the call price generally grinds lower due to the combined effect of decreasing time to maturity as well as the decrease in the implied vol as the option ages. Around n=750, the stock then experiences a sharp rally back to ~104 and the option also jumps sharply as the stock rallies. Note however that the value of the option peaks at a lower level than it did at n=42 even though the stock price is actually slightly higher. This is because of the decreased time to maturity and lower implied volatility used to price the option, which means that at this stage in the option’s life intrinsic value is a much higher percentage of the total option value. The stock thens off after n~900 and drops below the strike price as it approaches maturity. The option suffers a very sharp loss during this period as its value drops from $4.50 down to very close to zero as it loses all of its intrinsic value. Finally, in the last 5 days of prior to maturity the stock rallies above the strike price, and the option reacts very quickly as the delta of the option quickly approaches 1 once the stock passes the strike price with such a short time to maturity.</p>
+<p>We also plot the value of the hedging error over the life of the trade. The hedging error stems from the fact that while the option delta changes continuously as the stock price moves, we are only choosing to rehedge the delta daily. Therefore, there will be intraday differences between the delta of our hedge portfolio and the delta of the option that result in small profits/losses that depend on the fluctuation in the stock. Since we are long a call option, large movements in the stock price intraday are generally positive for our net PnL. As the stock rises the delta of our call option rises intraday while the hedge portfolio delta remains constant, resulting in a small gain. Similarly, when the stock falls intraday, the our call delta shrinks while the hedge portfolio delta remains the same, resulting in small gains from the short delta of the hedge portfolio. Since we model the realized volatility as being identical to the implied volatility, this means that over time we accumulate net gains in the portfolio as we capture some of the gamma benefit of being long the option (this is a manifestation of the parabolic PnL graph of being long the option in the notes). However, in the real world we would expect that options would generally be priced with some risk premium such that implied volatility is frequently higher than realized, such that the option seller gets compensated for assuming the risk of selling the option.</p>
+</div>
+</div>
+<div id="exercise-2" class="section level2">
+<h2>Exercise 2</h2>
+<p>To compute the implied volatility we iterate this procedure <span class="math display">\[ \sigma_1 = \sigma_0 - \frac{f(\sigma_0)}{f&#39;(\sigma_0)}\]</span></p>
+<pre class="r"><code>implied.vol &lt;- function(S, K, r, Tminust, C){
+  
+  f &lt;- function(sigma, S, K, r, Tminust, C) {#defining f(sigma)
+  d1 &lt;- (log(S/K) + ( (r + sigma^2/2)*(Tminust)))/(sigma*sqrt(Tminust));
+  d2 &lt;- (log(S/K) + ( (r - sigma^2/2)*(Tminust)))/(sigma*sqrt(Tminust));
+  part1 &lt;- pnorm(d1) * S;
+  part2 &lt;- K*exp(-r*(Tminust)) * pnorm(d2);
+  VC &lt;- part1 - part2;
+  f &lt;- VC - C;
+  f
+}
+
+fprime &lt;- function(sigma, S, K, r, Tminust, C) {#defining f&#39;(sigma)
+  d1 &lt;- (log(S/K) + ( (r + sigma^2/2)*(Tminust)))/(sigma*sqrt(Tminust));
+  fprime &lt;- S*sqrt(Tminust)*dnorm(d1)*exp(-r*Tminust);
+  fprime
+}
+
+epsilon &lt;- 10^(-5)
+sigmaNew &lt;- sqrt((2*abs(log(S/(K*exp(-r*Tminust)))))/(Tminust))
+
+
+#repeat the iteration until the computed sigma minus the previous is less than our epsilon
+repeat { 
+    sigmaOld &lt;- sigmaNew
+    sigmaNew &lt;- sigmaOld - f(sigmaOld, S, K, r, Tminust, C)/fprime(sigmaOld, S, K, 
+        r, Tminust)
+    
+    if (abs(sigmaNew - sigmaOld) &lt; epsilon) {
+        break
+    }
+}
+
+return(sigmaNew)
+}</code></pre>
+<pre class="r"><code>#Duke Energy Data
+S &lt;- 42.27
+K &lt;- c(40,42.5,45)
+Time&lt;-c(25,60,151)
+Tminust&lt;-round((Time/360),4)
+r&lt;-c(0.0492,0.0485,0.0491)
+C&lt;-data.frame(&quot;40&quot;=c(3.9,4.3,5.3), 
+              &quot;42.5&quot;=c(2.7,3.9,4.8),
+              &quot;45&quot;=c(1.25,2.4,3.3))
+rownames(C)=Tminust</code></pre>
+<pre class="r"><code>impl.vol.mat &lt;- matrix(nrow=length(Tminust),ncol=length(K), dimnames = list(Tminust,K))
+
+#Creating Duke&#39;s matrix of implied volatilities for the different K and Maturity
+for (k in 1:length(K)){
+
+  for(t in 1:length(Tminust)){
+    
+  impl.vol.mat[t,k] = implied.vol(S=S,K=K[k],r=r[t],Tminust = Tminust[t],C=C[t,k])
+
+  }
+  
+}</code></pre>
+<pre class="r"><code>library(plot3D)
+
+par(cex=1, mai=c(1,1,1,1))
+persp3D(z = impl.vol.mat, theta = 45, expand = 0.8,border = &quot;white&quot;,
+        main=&quot;Implied volatility for Duke Energy&quot;,xlab=&quot;Time to maturity&quot;
+        ,ylab=&quot;Strike Price&quot;,zlab=&quot;Implied volatility&quot;)</code></pre>
+<p><img src="Financial-Derivatives_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
+<pre class="r"><code>#IBM Data
+
+S &lt;- 108.90
+K &lt;- c(100,110,120)
+Time&lt;-c(25,60,151)
+Tminust&lt;-round((Time/360),4)
+r&lt;-c(0.0492,0.0485,0.0491)
+C&lt;-data.frame(&quot;100&quot;=c(12,14.1,18.7),
+              &quot;110&quot;=c(4.4,8.1,11.4),
+              &quot;120&quot;=c(1.1,3.6,7.5))
+rownames(C)=Tminust</code></pre>
+<pre class="r"><code>impl.vol.mat &lt;- matrix(nrow=length(Tminust),ncol=length(K), dimnames = list(Tminust,K))
+
+#Creating IBM&#39;s matrix of implied volatilities for the different K and Maturity
+for (k in 1:length(K)){
+
+  for(t in 1:length(Tminust)){
+    
+  impl.vol.mat[t,k] = implied.vol(S=S,K=K[k],r=r[t],Tminust = Tminust[t],C=C[t,k])
+
+  }
+  
+}</code></pre>
+<pre class="r"><code>library(plot3D)
+
+par(cex=1, mai=c(1,1,1,1))
+persp3D(z = impl.vol.mat, theta = 45, expand = 0.8,border = &quot;white&quot;,
+        main=&quot;Implied volatility for IBM&quot;,xlab=&quot;Time to maturity&quot;,
+        ylab=&quot;Strike Price&quot;,zlab=&quot;Implied volatility&quot;)</code></pre>
+<p><img src="Financial-Derivatives_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
+<pre class="r"><code>#MICROSOFT Data
+S &lt;- 55.19
+K &lt;- c(50,55,60)
+Time&lt;-c(25,60,151)
+Tminust&lt;-round((Time/360),4)
+r&lt;-c(0.0492,0.0485,0.0491)
+C&lt;-data.frame(&quot;50&quot;=c(6.5,8.13,10),
+              &quot;55&quot;=c(3,4.5,6.88),
+              &quot;60&quot;=c(0.94,2.38,4.5))
+rownames(C)=Tminust</code></pre>
+<pre class="r"><code>impl.vol.mat &lt;- matrix(nrow=length(Tminust),ncol=length(K), dimnames = list(Tminust,K))
+
+#Creating IBM&#39;s matrix of implied volatilities for the different K and Maturity
+for (k in 1:length(K)){
+
+  for(t in 1:length(Tminust)){
+    
+  impl.vol.mat[t,k] = implied.vol(S=S,K=K[k],r=r[t],Tminust = Tminust[t],C=C[t,k])
+
+  }
+  
+}</code></pre>
+<pre class="r"><code>library(plot3D)
+
+par(cex=1, mai=c(1,1,1,1))
+persp3D(z = impl.vol.mat, theta = 45, expand = 0.8,border = &quot;white&quot;,
+        main=&quot;Implied volatility for MICROSOFT&quot;,xlab=&quot;Time to maturity&quot;,
+        ylab=&quot;Strike Price&quot;,zlab=&quot;Implied volatility&quot;)</code></pre>
+<p><img src="Financial-Derivatives_files/figure-html/unnamed-chunk-20-1.png" width="672" /></p>
+<div id="interpretation-of-answers-to-question-2" class="section level3">
+<h3>Interpretation of answers to question 2</h3>
+<p>In the second exercise we use the option prices given in case 1 to plot the volatility surface for 3 stocks: Duke Energy, IBM, and Microsoft. For each stock we are given option prices for 3 different strike prices across 3 different maturities: March, April, and June. Using this data we compute the implied volatilities for the 3 different strikes for each different month of expiry and come up with a volatility surface consisting of 9 points. While these volatility surfaces are quite limited in terms of their dimensionality, some general takeaways can be seen. First, it should be noted that Duke Energy has quite a unique volatility surface that does not resemble the other two stocks. In particular, Duke Energy’s volatility surface does not display any smile or skew, as the ATM options have the highest volatility. We cannot really say with confidence what is driving the odd shape of Duke Energy’s volatility surface. For the other two stocks, the most notable feature of the volatility surface is the pronounced skew that we see especially among the shortest maturity options. Both MSFT and IBM show substantially higher implied volatility for options with lower strike prices. This is a fairly common trait for equity options as the returns of large cap stocks tend to show fatter left tails than right tails, thereby leading the market to price higher implied volatility for options with lower strike prices. In addition, we also note that the term structure of volatility for all of the stocks is flat to slightly inverted (ie, near term maturities trading with higher implied volatilities). While we don’t know for sure the cause of this, we do note that 2000-2001 was a time of relatively high realized volatility for equity markets, so we suspect that since volatility tends to cluster in the short term and mean revert in the longer term, the volatility surface is pricing the shorter dated options close to the levels of recent realized volatility whereas the longer dated options are priced for a small amount of mean reversion.</p>
+<pre class="r"><code>library(data.table)</code></pre>
+</div>
+</div>
+</div>
+<div id="problem-set-3" class="section level1">
+<h1>Problem Set 3</h1>
+<p>In what follows we detail our answers to Problem Set 3. Of note, the intuition to each question’s answer is presented at the end of the code that generated the intermedite results of the analysis.</p>
+<div id="exercise-1-1" class="section level2">
+<h2>Exercise 1</h2>
+<p>We start by simulating an arbitrary number (4) paths for the stock price and plotting them. These are generated under the set of baseline parameters given in HW3 and assuming the stock price follows a Geometric Brownian Motion process.</p>
+<pre class="r"><code>#Baseline parameters
+s0&lt;-100
+r&lt;-0.1 #annualized short rate for 1 year
+t&lt;-1 #1 year period
+n&lt;-1000 #of small timesteps
+sigma&lt;-0.2 #constant volatility of 20% assumed
+H&lt;-90 #down/out barrier at $90
+k&lt;-103
+
+#This function generates paths for the stock price
+stock_path&lt;-function(t,n,r,sigma,s0=100){
+  path&lt;-c(s0)
+ for (j in 1:n){
+(path[j+1]&lt;-path[j]*(1+r*(t/n)+sigma*rnorm(1,0,(sqrt(t/n)))))
+ }
+return(path)
+}
+#Now we want to simulate &#39;q&#39; paths with the 
+paths&lt;-function(q,t,n,r,vols,s0=100){
+  m&lt;-c()
+  for (i in 1:q){
+    set.seed(i*1521)
+    m&lt;-cbind(m,stock_path(t,n,r,vols))
+    dat&lt;-cbind(id=c(0:n+1),as.data.frame(m))
+  }
+  datmelt&lt;-melt(dat,id.vars=&quot;id&quot;)
+  ggplot(datmelt, 
+         aes(x = id, y = value, color=variable))+theme_bw()+
+    xlab(&quot;N=1000&quot;)+ylab(&quot;St, down/out Barrier&quot;)+geom_line()+ theme(legend.position = &quot;none&quot;)+
+    ggtitle(paste0(q,&quot; possible paths for the stock price&quot;))+geom_hline(yintercept=90, linetype=6, size=0.2)+
+    annotate(geom=&quot;text&quot;,x=-1,y=88, label=&quot;H=90&quot;,color=&quot;black&quot;)
+}
+#paths(4,t,n,r,sigma,s0)
+#Now we recover each path of the stock individually
+paths_frame&lt;-function(q,t,n,r,sigma,s0=100){
+  m&lt;-c()
+  for (i in 1:q){
+    set.seed(i*12)
+    m&lt;-cbind(m,stock_path(t,n,r,sigma))
+    dat&lt;-cbind(id=c(0:n+1),as.data.frame(m))
+  }
+  datmelt&lt;-melt(dat,id.vars=&quot;id&quot;)
+  return(datmelt)
+}
+a_path&lt;-data.table(paths_frame(4,t,n,r,sigma))</code></pre>
+<pre><code>## Warning in melt(dat, id.vars = &quot;id&quot;): The melt generic in data.table has been passed a data.frame and will attempt to redirect to the
+## relevant reshape2 method; please note that reshape2 is deprecated, and this redirection is now deprecated as well. To continue using melt
+## methods from reshape2 while both libraries are attached, e.g. melt.list, you can prepend the namespace like reshape2::melt(dat). In the
+## next version, this warning will become an error.</code></pre>
+<pre class="r"><code>a_path[variable==&quot;V1&quot;,path:=&quot;S1&quot;]
+a_path[variable==&quot;V2&quot;,path:=&quot;S2&quot;]
+a_path[variable==&quot;V3&quot;,path:=&quot;S3&quot;]
+a_path[variable==&quot;V4&quot;,path:=&quot;S4&quot;]
+
+a_path&lt;-a_path[][,-2]
+
+ggplot(a_path, aes(x = id, y = value, color=path))+theme_bw()+
+  xlab(&quot;N=1000&quot;)+ylab(&quot;St, H&quot;)+geom_line()+
+  ggtitle(paste0(&quot;4 given paths for the stock price&quot;))+geom_hline(yintercept=90, linetype=6, size=0.2)+annotate(geom=&quot;text&quot;,x=-1,y=88, label=&quot;H=90&quot;,color=&quot;black&quot;)</code></pre>
+<p><img src="Financial-Derivatives_files/figure-html/unnamed-chunk-22-1.png" width="672" /></p>
+<pre class="r"><code>#plot(a_path[variable==&quot;V1&quot;]$value)
+#1red,2green,3blue,4purple</code></pre>
+<p>Now we want to price vanilla and d/o barrier calls for each of these possible stock price paths</p>
+<pre class="r"><code>#Since price setting for the barrier is done daily, we need to extract daily prices
+# from the simulated &quot;continous&quot; price of the stock to make price series comparable
+daily_indices&lt;-ceiling(seq(1,1000,(1000/365)))
+#stock path 1
+S1&lt;-a_path[path==&quot;S1&quot;&amp;id%in%daily_indices]$value
+#stock path 2
+S2&lt;-a_path[path==&quot;S2&quot;&amp;id%in%daily_indices]$value
+#stock path 3
+S3&lt;-a_path[path==&quot;S3&quot;&amp;id%in%daily_indices]$value
+#stock path 4
+S4&lt;-a_path[path==&quot;S4&quot;&amp;id%in%daily_indices]$value
+
+#Now we compute the vanilla call price paths for each of the stock price paths with K=103
+#Pricing function for vanilla call
+vanilla_call&lt;- function(s, k, r, sigma) {call&lt;-c()
+for (i in 1:length(s)){t&lt;-1-(i/(365))
+  d1  &lt;-  (log(s[i]/k) + (r + sigma^2/2)*t) / (sigma*sqrt(t))
+  d2  &lt;-  d1 - sigma*sqrt(t)
+  call[i]&lt;-s[i]*pnorm(d1)-k*exp(-r*t)*pnorm(d2)
+ }
+return(call)
+}
+
+#vanilla call path 1
+vcall_1&lt;-vanilla_call(S1,k,r,sigma)
+#vanilla call path 2
+vcall_2&lt;-vanilla_call(S2,k,r,sigma)
+#vanilla call path 3
+vcall_3&lt;-vanilla_call(S3,k,r,sigma)
+#vanilla call path 4
+vcall_4&lt;-vanilla_call(S4,k,r,sigma)
+
+#Pricing function for down,out call
+#Note value goes to zero if barrier broken
+down_out_call&lt;-function(s,k,r,sigma,H){call&lt;-c()
+for (i in 1:length(s)){t&lt;-1-(i/(365))
+if(H&lt;=s[i]){
+  d1  &lt;-  (log(s[i]/k) + (r + sigma^2/2)*t) / (sigma*sqrt(t))
+  d2  &lt;-  d1 - sigma*sqrt(t)
+  h1  &lt;-  (log((H^2/(s[i]*k))) + (r + sigma^2/2)*t)/(sigma*sqrt(t))
+  h2  &lt;-  (log((H^2/(s[i]*k))) + (r - sigma^2/2)*t)/(sigma*sqrt(t))
+  call[i]&lt;-s[i]*pnorm(d1)-k*exp(-r*t)*pnorm(d2)-((H/s[i])^(1+2*r*(sigma)^(-2)))*s[i]*pnorm(h1)+k*exp(-r*t)*((H/s[i])^(1+2*r*(sigma)^(-2)))*pnorm(h2)
+}
+else{(call[i:length(s)]=0)
+  break}#Breaks loop if stock price crosses barrier
+}
+return(call)
+}
+#barrier call path 1
+do_call_1&lt;-down_out_call(S1,k,r,sigma,H)
+day_cross_S1&lt;-min(which(S1&lt;H))#Barrier crossed at day 197
+#barrier call path 2
+do_call_2&lt;-down_out_call(S2,k,r,sigma,H)
+day_cross_S2&lt;-min(which(S2&lt;H))#Barrier crossed at day 49
+#barrier call path 3
+do_call_3&lt;-down_out_call(S3,k,r,sigma,H)#Barrier not crossed
+#barrier call path 4
+do_call_4&lt;-down_out_call(S4,k,r,sigma,H)#Barrier not crossed
+
+#Now we want to plot the price paths for each of the vanilla and barrier call options pairs
+dt_price_paths&lt;-as.data.table(cbind(id=seq(1,365,1),vcall_1,do_call_1,vcall_2,do_call_2,vcall_3,do_call_3,vcall_4,do_call_4))
+#Note none of the options finishes in the money, so value at t=365 is 0 in ALL cases
+#Price differences from vanilla v barrier (non-negative) are plotted separately for each case, to aid in visual inspection
+#path 1 plots
+preplot_s1&lt;-data.table(melt(dt_price_paths[,.(id,vcall_1,do_call_1)],id.vars=&quot;id&quot;))
+preplot_s1[variable==&quot;vcall_1&quot;,Type:=&quot;Vanilla&quot;]
+preplot_s1[variable==&quot;do_call_1&quot;,Type:=&quot;Barrier d/o&quot;]
+ggplot(preplot_s1,aes(x=id,y=value,color=Type))+geom_line()+theme_bw()+xlab(&quot;day (N=365)&quot;)+ylab(&quot;$&quot;)+ggtitle(&quot;Call prices for stock price path S1&quot;)+
+geom_vline(xintercept=day_cross_S1, linetype=3, size=0.2)+annotate(geom=&quot;text&quot;,x=day_cross_S1-27,y=2, label=&quot;Barrier crossed&quot;,color=&quot;black&quot;,size=2.6)</code></pre>
+<p><img src="Financial-Derivatives_files/figure-html/unnamed-chunk-23-1.png" width="672" /></p>
+<pre class="r"><code>#plot price dif1
+preplot_dif1&lt;-as.data.table(cbind(id=seq(1,365,1),value=preplot_s1[Type==&quot;Vanilla&quot;]$value-preplot_s1[Type==&quot;Barrier d/o&quot;]$value))
+
+#ggplot(preplot_dif1,aes(x=id,y=value))+geom_line(color=&quot;blue3&quot;)+theme_bw()+xlab(&quot;day (N=365)&quot;)+ylab(&quot;$&quot;)+ggtitle(&quot;Vanilla v Barrier d/o price difference for S1 path&quot;)+
+#geom_vline(xintercept=day_cross_S1, linetype=3, size=0.2)+annotate(geom=&quot;text&quot;,x=day_cross_S1-27,y=0.75, label=&quot;Barrier crossed&quot;,color=&quot;black&quot;,size=2.6)
+#path 2 plots
+preplot_s2&lt;-data.table(melt(dt_price_paths[,.(id,vcall_2,do_call_2)],id.vars=&quot;id&quot;))
+preplot_s2[variable==&quot;vcall_2&quot;,Type:=&quot;Vanilla&quot;]
+preplot_s2[variable==&quot;do_call_2&quot;,Type:=&quot;Barrier d/o&quot;]
+ggplot(preplot_s2,aes(x=id,y=value,color=Type))+geom_line()+theme_bw()+xlab(&quot;day (N=365)&quot;)+ylab(&quot;$&quot;)+ggtitle(&quot;Call prices for stock price path S2&quot;)+
+geom_vline(xintercept=day_cross_S2, linetype=3, size=0.2)+annotate(geom=&quot;text&quot;,x=day_cross_S2+27,y=2, label=&quot;Barrier crossed&quot;,color=&quot;black&quot;,size=2.6)</code></pre>
+<p><img src="Financial-Derivatives_files/figure-html/unnamed-chunk-23-2.png" width="672" /></p>
+<pre class="r"><code>#plot price dif2
+#preplot_dif2&lt;-as.data.table(cbind(id=seq(1,365,1),value=preplot_s2[Type==&quot;Vanilla&quot;]$value-preplot_s2[Type==&quot;Barrier d/o&quot;]$value))
+
+#ggplot(preplot_dif2,aes(x=id,y=value))+geom_line(color=&quot;blue3&quot;)+theme_bw()+xlab(&quot;day (N=365)&quot;)+ylab(&quot;$&quot;)+ggtitle(&quot;Vanilla v Barrier d/o price difference for S2 path&quot;)+
+#geom_vline(xintercept=day_cross_S2, linetype=3, size=0.2)+annotate(geom=&quot;text&quot;,x=day_cross_S2+27,y=0.75, label=&quot;Barrier crossed&quot;,color=&quot;black&quot;,size=2.6)
+#path 3 plots
+preplot_s3&lt;-data.table(melt(dt_price_paths[,.(id,vcall_3,do_call_3)],id.vars=&quot;id&quot;))
+preplot_s3[variable==&quot;vcall_3&quot;,Type:=&quot;Vanilla&quot;]
+preplot_s3[variable==&quot;do_call_3&quot;,Type:=&quot;Barrier d/o&quot;]
+ggplot(preplot_s3,aes(x=id,y=value,color=Type))+geom_line()+theme_bw()+xlab(&quot;day (N=365)&quot;)+ylab(&quot;$&quot;)+ggtitle(&quot;Call prices for stock price path S3&quot;)</code></pre>
+<p><img src="Financial-Derivatives_files/figure-html/unnamed-chunk-23-3.png" width="672" /></p>
+<pre class="r"><code>#plot price dif3
+#preplot_dif3&lt;-as.data.table(cbind(id=seq(1,365,1),value=preplot_s3[Type==&quot;Vanilla&quot;]$value-preplot_s3[Type==&quot;Barrier d/o&quot;]$value))
+
+#ggplot(preplot_dif3,aes(x=id,y=value))+geom_line(color=&quot;blue3&quot;)+theme_bw()+xlab(&quot;day (N=365)&quot;)+ylab(&quot;$&quot;)+ggtitle(&quot;Vanilla v Barrier d/o price difference for S3 path&quot;)
+#path 4 plots
+preplot_s4&lt;-data.table(melt(dt_price_paths[,.(id,vcall_4,do_call_4)],id.vars=&quot;id&quot;))
+preplot_s4[variable==&quot;vcall_4&quot;,Type:=&quot;Vanilla&quot;]
+preplot_s4[variable==&quot;do_call_4&quot;,Type:=&quot;Barrier d/o&quot;]
+ggplot(preplot_s4,aes(x=id,y=value,color=Type))+geom_line()+theme_bw()+xlab(&quot;day (N=365)&quot;)+ylab(&quot;$&quot;)+ggtitle(&quot;Call prices for stock price path S4&quot;)</code></pre>
+<p><img src="Financial-Derivatives_files/figure-html/unnamed-chunk-23-4.png" width="672" /></p>
+<pre class="r"><code>#plot price dif4
+#preplot_dif4&lt;-as.data.table(cbind(id=seq(1,365,1),value=preplot_s4[Type==&quot;Vanilla&quot;]$value-preplot_s4[Type==&quot;Barrier d/o&quot;]$value))
+#ggplot(preplot_dif4,aes(x=id,y=value))+geom_line(color=&quot;blue3&quot;)+theme_bw()+xlab(&quot;day (N=365)&quot;)+ylab(&quot;$&quot;)+ggtitle(&quot;Vanilla v Barrier d/o price difference for S4 path&quot;)</code></pre>
+<p>Intepretation of results for Q1</p>
+<p>For this problem we first simulated four paths of a a stock price using the discrete approximation to the GBM process with an initial price of 100, a volatility of 20%, and a risk free rate (aka risk neutral drift) of 10%. We simulate each path over a period of 1 year with 1000 increments. These are the four simulations that will subsequently be used to price a down and out call option with a strike of 103 and a barrier of 90. As can be seen from the first graph, simulations S1 and S2 remain below the initial price for virtually the entire simulation, whereas simulation S3 is choppy around the initial price but settles above 105 at maturity, and path S4 initially rises strongly but subsequently drops to below the initial price. Also of note in the first graph is that both S1 and S2 cross the $90 level that is associated with the barrier level of our option. In the next series of graphs of color teal and orange, we plot the prices of a vanilla call option with a strike of 103 vs a down and out call with a strike of 103 and a barrier of 90. As can be seen from the initial values, the down and out call is always less expensive at inception than the vanilla call, which makes sense because the down and out call must be discounted due to the fact that there is some probability the option will hit the barrier prior to maturity and therefore be rendered worthless regardless of the price of the stock at the maturity of the option (time T). Of note, the underlying stock does hit the barrier in simulations S1 and S2, and we can see a rapid drop in price toward zero in the down and out call as the price approaches the barrier, whereas the vanilla option still retains its time value until maturity. In simulation 3, the stock remains above above the barrier during the entire simulation and finishes just above 105, so both the vanilla option and the down and out call converge to the intrinsic value of the option at maturity. However, it is worth noting that in spite of the fact that the stock finished above the strike price, both the vanilla and the down and out call posted negative returns, as the intrinsic value at time T was less then the price paid for either option. Because the down and out call was cheaper at inception, it had a less negative rate of return. Finally, in path S4, the underlying stock never hits the barrier; however, as the stock finishes below the 103 strike price, the value of both the down and out call and the vanilla option converge to zero at maturity.</p>
+</div>
+<div id="exercise-2-pricing-asian-options" class="section level2">
+<h2>Exercise 2 : Pricing Asian options</h2>
+<p>Consider a one-year Asian call option struck at 103 with <span class="math inline">\(S_0\)</span> = 100, <span class="math inline">\(\sigma\)</span> = 0.2 and r = 0.1 with daily setting dates. Plot a realization of the stock price together with the arithmetic average. Using Monte Carlo plot the value of the call as a function of time using arithmetic average together with the corresponding vanilla call.</p>
+<pre class="r"><code>set.seed(9)
+s0&lt;-100
+r&lt;-.1 
+t&lt;-1
+n&lt;-3650
+k&lt;-103
+sigma&lt;-.2
+path&lt;-c(s0)
+average=100
+ for (j in 1:n){
+    path[j+1]&lt;-path[j]*exp(sigma*sqrt(t/n)*rnorm(1)+(r-(sigma^2)/2)*(t/n))
+    average[j+1]=mean(path)
+    
+ }
+
+
+
+
+ggplot(,aes(1:(n+1), path,colour=&quot;Stock&quot;))+
+  geom_line()+
+  geom_line(aes(1:(n+1),average, colour=&quot;Average at time t&quot;))+
+  geom_line(aes(1:(n+1),average[length(average)], colour=&quot;Average at time T&quot;))+
+  labs(x=&quot;Days&quot;, y=&quot;Price&quot;, title = &quot;Stock path and arithmetic average&quot;)+
+  geom_hline(yintercept=103, alpha=0.4)+
+  annotate(geom=&quot;text&quot;,x=-1,y=104, label=&quot;K=103&quot;,color=&quot;black&quot;)</code></pre>
+<p><img src="Financial-Derivatives_files/figure-html/unnamed-chunk-24-1.png" width="672" /></p>
+<p>Create n*M paths matrix</p>
+<pre class="r"><code>data&lt;-matrix(nrow=3650,ncol=1000)
+data[1,]=100
+n=3650
+m=1000
+set.seed(9)
+r&lt;-.1 
+t&lt;-1
+k&lt;-103
+sigma&lt;-.2
+
+
+for (z in 1:m){
+  for (j in 1:(n-1)){
+  data[j+1,z]&lt;-data[j,z]*exp(sigma*sqrt(t/n)*rnorm(1)+(r-(sigma^2)/2)*(t/n))
+
+}
+  
+}
+
+data&lt;-data.table(data)
+data&lt;-cbind(t=1:3650,data)</code></pre>
+<pre class="r"><code>data.daily&lt;- data[t%%10==0 | t==1]
+data.daily&lt;-data.daily[-length(data.daily$t)][,t:=1:365]
+
+
+call.path &lt;-c()
+
+for (i in 1:length(data.daily$t)){
+  t&lt;-1-(i/(365))
+  d1  &lt;-  (log(data.daily$V1[i]/k) + (r + sigma^2/2)*t) / (sigma*sqrt(t))
+  d2  &lt;-  d1 - sigma*sqrt(t)
+  call.path[i]&lt;-data.daily$V1[i]*pnorm(d1)-k*exp(-r*t)*pnorm(d2)
+ }</code></pre>
+<p><span class="math display">\[AsianCall_t=e^{-r(T-t)}\frac{1}{n}\sum_{i=1}^{n}max\left(\frac{1}{T}\left(t_jA_{[t_0,t_j]}+(T-t_j)S_{tj}\frac{A_{[t_j,t_N]}^{i}}{S_{tj}^{i}}\right)-K,0\right)\]</span> In order to not simulate a Monte Carlo at every step, we applied a change of variables in the equation so we get increments and it allows us to use the same montecarlo from <span class="math inline">\(t=0\)</span> to <span class="math inline">\(t=t\)</span> at every step.</p>
+<pre class="r"><code>MC&lt;-100
+mean.path&lt;-c()
+asian&lt;-c()
+for (i in 1:length(data.daily$t)){
+  MC[i+1]=mean(data.daily[t&lt;=(365-i),sapply(.SD, function (x) (data.daily$V1[i]/100)*mean(x)), .SDcols=!&quot;t&quot;])
+  mean.path[i]=mean(data.daily[t&lt;=i,sapply(.SD, mean), .SDcols=&quot;V1&quot;])
+  asian[i]&lt;-exp(-r*(365-i)/365)*max((((365-i)*MC[i]+i*(mean.path[i]))/365)-k,0)
+}</code></pre>
+<pre class="r"><code>ggplot(,aes(1:365, data.daily$V1, color=&quot;Real path&quot;))+
+  geom_line()+
+  geom_line(aes(1:365,call.path, color=&quot;Call path&quot;))+
+  geom_line(aes(1:365, asian, color=&quot;Asian path&quot;))</code></pre>
+<p><img src="Financial-Derivatives_files/figure-html/unnamed-chunk-28-1.png" width="672" /></p>
+<pre class="r"><code>ggplot(,aes(1:365, call.path, color=&quot;Call Path&quot;))+
+  geom_line()+
+  geom_line(aes(1:365, asian, color=&quot;Asian path&quot;))</code></pre>
+<p><img src="Financial-Derivatives_files/figure-html/unnamed-chunk-29-1.png" width="672" /></p>
+<p>The first chart in the R code plots a realization of our stock’s path given an initial stock price of 100, volatility of 20% annualized, and a risk free rate (ie risk neutral drift) of 10%. Additionally, the plot shows the average price of the stock at maturity (time T) as well as the average price for each increment (t) prior to time T. As expected, the average at time t converges to the average over all observations at maturity.</p>
+<p>The second graph plots the realization of the stock price, the realization of a vanilla call, and the realization of an asian call both with a strike of 103. The third graph plots just the value of the vanilla and asian call in order to allow for better visualization of the option price realizations. As can be seen, the value of the asian option has a lower value at inception and also displays lower volatility. Both of these make sense as the underlying function for the asian call is an averaging process that mutes the volatility of the value of the asian option. We would note, however, that the total return of the asian option is superior to that of the vanilla option given the stock price realization we have chosen. This is because our stock path did not move up meaningfully enough to be materially higher than the strike price + the initial cost of the option, whereas the average price of the stock ended substantially above the strike price plus the cost of the asian option (which was significantly lower).</p>
+</div>
+</div>
+<div id="problem-set-4" class="section level1">
+<h1>Problem Set 4</h1>
+<pre class="r"><code>library(data.table)
+library(ggplot2)</code></pre>
+<div id="exercise-1-bond-prices-with-vasicek-model-for-interest-rates" class="section level2">
+<h2>Exercise 1 : Bond prices with Vasicek model for interest rates</h2>
+<p><span class="math display">\[dr_t=b(a-r_t)dt+\sigma dB_t \\ t\epsilon[0, T]\]</span></p>
+<div id="simulate-several-realizations-of-the-process-for-different-values-of-basigmat-and-n-1000.-do-you-observe-the-mean-reverting-phenomena" class="section level3">
+<h3>Simulate several realizations of the process for different values of <span class="math inline">\(b\)</span>,<span class="math inline">\(a\)</span>,<span class="math inline">\(\sigma\)</span>,<span class="math inline">\(T\)</span> and N = 1000. Do you observe the mean-reverting phenomena ?</h3>
+<pre class="r"><code>steps&lt;-1000
+r_vec &lt;- rnorm(steps)
+r_path &lt;- function(r0,b,a,sigma,T, N = steps) {
+
+rt &lt;- r0
+for (i in 1:(N-1)) {
+  rt[i+1]&lt;-(1/(1+b*(T/N)))*(rt[i]+b*a*(T/N)+sigma*sqrt(T/N)*r_vec[i])
+}
+
+return(rt)
+
+}</code></pre>
+<pre class="r"><code>i &lt;- 0
+vector &lt;- c(1,3,6,10)
+rt_b &lt;- as.data.table(matrix(ncol=length(vector),nrow=steps))
+for (val in vector){
+  i &lt;- i+1
+  rt_b[,i] &lt;- r_path(r0 = 0.03,b = val,a = 0.05,sigma = 0.1,T = 5,N = steps )  
+}
+
+colnames(rt_b) &lt;- paste(&quot;b&quot;,vector,sep=&quot;=&quot;)
+rt_b&lt;-as.data.table(cbind(&quot;time&quot;=1:steps,rt_b))
+
+v_col &lt;- rainbow(length(vector))</code></pre>
+<pre class="r"><code>ggplot(melt(rt_b,id.vars=&quot;time&quot;),aes(time,value,colour=variable))+
+  geom_line()+
+  labs(x=&quot;transaction&quot;,y=&quot;rt&quot;,title=&quot;FIG 1A: Different b&quot;)+
+  geom_hline(yintercept = 0.05, alpha=0.6, linetype=&quot;dashed&quot;)</code></pre>
+<p><img src="Financial-Derivatives_files/figure-html/unnamed-chunk-33-1.png" width="672" /></p>
+<p>Using the Vasicek model, we plot realizations of paths of the spot interest rate using several graphs with varying parameters. In the graph 1A, we vary the ‘b’ parameter in the model (holding the other parameters constant), which sets the speed at which the short rate mean reverts to the long term rate. As can be seen in the graph, higher levels of b correspond to faster mean reversion and thinner tails in the the path of the short rate.</p>
+<pre class="r"><code>i &lt;- 0
+vector &lt;- c(0.0,0.01,0.02,0.05,0.1)
+rt_a &lt;- as.data.table(matrix(ncol=length(vector),nrow=steps))
+for (val in vector){
+  i &lt;- i+1
+  rt_a[,i] &lt;- r_path(r0 = 0.03,b = 6,a = val,sigma = 0.3,T = 5,N = steps )  
+}
+
+colnames(rt_a) &lt;- paste(&quot;a&quot;,vector,sep=&quot;=&quot;)
+rt_a&lt;-as.data.table(cbind(&quot;time&quot;=1:steps,rt_a))</code></pre>
+<pre class="r"><code>ggplot(melt(rt_a,id.vars=&quot;time&quot;),aes(time,value,colour=variable))+
+  geom_line()+
+  labs(x=&quot;transaction&quot;,y=&quot;rt&quot;,title=&quot;FIG 1B: Different a&quot;)+
+  geom_hline(yintercept = vector, colour=rainbow(5), alpha=0.5)</code></pre>
+<p><img src="Financial-Derivatives_files/figure-html/unnamed-chunk-35-1.png" width="672" /></p>
+<p>In graph 1B, we vary the ‘a’ parameter, which sets the drift of the short rate process. As can be seen, highest value of ‘a’ corresponds to the highest line in the graph, indicating a modest positive drift in the short rate over time.</p>
+<pre class="r"><code>i &lt;- 0
+vector &lt;- c(0.1,0.2,0.4,0.6,0.9)
+rt_s &lt;- as.data.table(matrix(ncol=length(vector),nrow=steps))
+for (val in vector){
+  i &lt;- i+1
+  rt_s[,i] &lt;- r_path(r0 = 0.03,b = 3,a = 0.05,sigma = val,T = 5,N = steps )  
+}
+
+colnames(rt_s) &lt;- paste(&quot;sigma&quot;,vector,sep=&quot;=&quot;)
+rt_s&lt;-as.data.table(cbind(&quot;time&quot;=1:steps,rt_s))</code></pre>
+<pre class="r"><code>ggplot(melt(rt_s,id.vars=&quot;time&quot;),aes(time,value,colour=variable))+
+  geom_line()+
+  labs(x=&quot;transaction&quot;,y=&quot;rt&quot;,title=&quot;FIG 1C: Different sigma&quot;)+
+  geom_hline(yintercept = 0.05, alpha=0.5)</code></pre>
+<p><img src="Financial-Derivatives_files/figure-html/unnamed-chunk-37-1.png" width="672" /></p>
+<p>In graph 1C, we vary the volatility of the short rate process holding everything else constant. As expected, the higher volatility the process, the further the short rate diverges from its mean value.</p>
+<pre class="r"><code>i &lt;- 0
+vector &lt;- c(0.5,1,3,5,8)
+rt_t &lt;- as.data.table(matrix(ncol=length(vector),nrow=steps))
+for (val in vector){
+  i &lt;- i+1
+  rt_t[,i] &lt;- r_path(r0 = 0.03,b = 3,a = 0.05,sigma = 0.1,T = val,N = steps )  
+}
+
+colnames(rt_t) &lt;- paste(&quot;T&quot;,vector,sep=&quot;=&quot;)
+rt_t&lt;-as.data.table(cbind(&quot;time&quot;=1:steps,rt_t))</code></pre>
+<pre class="r"><code>ggplot(melt(rt_t,id.vars=&quot;time&quot;),aes(time,value,colour=variable))+
+  geom_line()+
+  labs(x=&quot;transaction&quot;,y=&quot;rt&quot;,title=&quot;FIG 1D: Different T&quot;)+
+  geom_hline(yintercept = 0.05, alpha=0.5)</code></pre>
+<p><img src="Financial-Derivatives_files/figure-html/unnamed-chunk-39-1.png" width="672" /></p>
+<p>In graph 1D, we vary the T parameter which can be interpreted as the duration of the instrument. As can be seen from the graph, the volatility of the short rate process increases as T increases, which is the expected result as the volatility of fixed income instruments increases as their duration increases given there is more time for the path to diverge from the current value.</p>
+</div>
+<div id="for-some-of-the-realizations-in-1-plot-the-t-bond-price-t-rightarrow-p_tt." class="section level3">
+<h3>For some of the realizations in (1) plot the T-bond price t <span class="math inline">\(\rightarrow\)</span> <span class="math inline">\(P_t^T\)</span>.</h3>
+<pre class="r"><code>pt_path &lt;- function(T,b,a,sigma,rt) {
+t &lt;- seq(0,T,length.out = steps)
+pt &lt;- c()
+for (i in 1:steps){
+  pt[i] &lt;- exp((((1/b^2)*(1/b)*(1-exp(-b*(T-t[i])))-T+t[i])*(b^2*a-0.5*sigma^2))-((sigma^2)/(4*b))*(1/b)*((1-exp(-b*(T-t[i])))^2)-rt[i]*(1/b)*(1-exp(-b*(T-t[i]))))
+  
+  
+} 
+  
+return(as.data.table(unlist(pt)))
+}
+
+#rt_a[,4] b= 3, a=0.02, sigma=0.3
+pt_a &lt;- pt_path(T=3,b = 3,a = 0.02,sigma = 0.3, rt=rt_a[,4])
+#rt_a[,5] b=1.5 a=0.05 sigma=0.3
+pt_b &lt;- pt_path(T=3,b = 3,a = 0.05,sigma = 0.3, rt=rt_a[,6])
+
+
+pt_ab &lt;- cbind(&quot;time&quot;=1:steps,pt_a,pt_b)
+colnames(pt_ab)=c(&quot;time&quot;,&quot;b=3,a=0.02&quot;,&quot;b=3,a=0.05&quot;)</code></pre>
+<pre class="r"><code>ggplot(melt(pt_ab, id.vars=&quot;time&quot;), aes(time, value,color=variable))+
+  geom_line()+
+  labs(title=&quot;T-Bond price&quot;, y=&quot;$&quot;)</code></pre>
+<p><img src="Financial-Derivatives_files/figure-html/unnamed-chunk-41-1.png" width="672" /></p>
+<p>We next plot the price of a zero coupon bond with a 3 year maturity with varying parameters of a and b. As can be seen, higher values of a or b result in lower initial bond prices. This is because (all else equal) higher values of the long term mean interest rate result in higher discount rates over the life of the security, and faster mean reversion in discount rates also leads to higher discount rates over the life of the security (and thus lower initial prices).</p>
+</div>
+<div id="plot-some-graphs-of-the-yield-to-maturity-t-rightarrow-y_0t" class="section level3">
+<h3>Plot some graphs of the yield to maturity T <span class="math inline">\(\rightarrow\)</span> <span class="math inline">\(y_0^T\)</span></h3>
+<pre class="r"><code>pt_0_path &lt;- function(T,b,a,sigma,r0) {
+  return (exp((((1/b^2)*(1/b)*(1-exp(-b*(T)))-T)*(b^2*a-0.5*sigma^2))-((sigma^2)/(4*b))*(1/b)*((1-exp(-b*(T)))^2)-r0*(1/b)*(1-exp(-b*(T)))))
+}
+
+pt_0.a&lt;-c()
+y0_T.a&lt;-c()
+
+for (i in 1:30) {
+pt_0.a[i] &lt;- pt_0_path(T = i,b = 0.6,a = 0.05 ,sigma =0.1,r0=0.03)
+y0_T.a[i] &lt;- -(1/i)*log(pt_0.a[i])
+}
+
+pt_0.b&lt;-c()
+y0_T.b&lt;-c()
+
+for (i in 1:30) {
+pt_0.b[i] &lt;- pt_0_path(T = i,b = 0.6,a = 0.1 ,sigma =0.1,r0=0.03)
+y0_T.b[i] &lt;- -(1/i)*log(pt_0.b[i])
+}
+
+
+y0_T&lt;- as.data.table(cbind(&quot;time&quot;=1:30,y0_T.a,y0_T.b))
+colnames(y0_T)&lt;-c(&quot;time&quot;,&quot;b=0.6,a=0.05,vol=0.1,r0=0.03&quot;,&quot;b=0.6,a=0.1,vol=0.1,r0=0.03&quot;)</code></pre>
+<pre class="r"><code>ggplot(melt(y0_T, id.vars=&quot;time&quot;), aes(time, value,color=variable))+
+  geom_line()+
+  labs(title=&quot;Yield Curve&quot;, y=&quot;yield&quot;)</code></pre>
+<p><img src="Financial-Derivatives_files/figure-html/unnamed-chunk-43-1.png" width="672" /></p>
+<p>Finally, we plot the yield curve with different parameters of a and b to show the differing shape given by the parameters. As can be seen, the as the maturity extends the yield ultimately converges on the long term mean b with a controlling the speed of said reversion.</p>
+</div>
+</div>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

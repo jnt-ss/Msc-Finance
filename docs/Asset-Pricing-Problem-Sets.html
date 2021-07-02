@@ -9,7 +9,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="Joan Antoni Segui" />
+<meta name="author" content="Joan Antoni Seguí Serra" />
 
 
 <title>Asset Pricing</title>
@@ -281,7 +281,7 @@ $(document).ready(function () {
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <a class="navbar-brand" href="index.html">Finance Problem Sets</a>
+      <a class="navbar-brand" href="index.html">MSc Finance</a>
     </div>
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
@@ -290,6 +290,9 @@ $(document).ready(function () {
 </li>
 <li>
   <a href="Asset-Pricing-Problem-Sets.html">Asset Pricing</a>
+</li>
+<li>
+  <a href="Financial-Derivatives.html">Pricing Financial Derivatives I &amp; II</a>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
@@ -304,7 +307,7 @@ $(document).ready(function () {
 
 
 <h1 class="title toc-ignore">Asset Pricing</h1>
-<h4 class="author">Joan Antoni Segui</h4>
+<h4 class="author">Joan Antoni Seguí Serra</h4>
 
 </div>
 
@@ -407,7 +410,6 @@ legend(&quot;bottomleft&quot;,c(&quot;Estimated Risk Free&quot;,&quot;mean of Rf
 <div id="problem-set-2" class="section level1">
 <h1>Problem set 2</h1>
 <pre class="r"><code>library(ggplot2)</code></pre>
-<pre><code>## Warning: package &#39;ggplot2&#39; was built under R version 4.0.4</code></pre>
 <div id="a-find-the-composition-of-two-portfolios-in-the-frontier-the-mean-variance-and-standard-deviation-of-those-portfolios-and-the-covariance-between-them.-note-use-the-portfolios-denoted-by-w_1-and-w_2-in-the-slides." class="section level2">
 <h2>a) Find the composition of two portfolios in the frontier, the mean, variance, and standard deviation of those portfolios, and the covariance between them. (Note: use the portfolios denoted by <span class="math inline">\(w_1\)</span> and <span class="math inline">\(w_2\)</span> in the slides).</h2>
 <pre class="r"><code>IndustryMonthly=read.csv(&quot;C:/Users/Jt_an/Google Drive/GSE - Finance/1 trim_/Asset pricing_/Problem Sets/PS2/Monthly.csv&quot;, sep=&quot;;&quot;)/100
@@ -512,8 +514,7 @@ comp</code></pre>
 ## Finan -0.04844809
 ## Other -0.28206567</code></pre>
 <pre class="r"><code>print(c(&quot;Expected Return&quot;, erp, &quot;Standard Deviation&quot;, sdp))</code></pre>
-<pre><code>## [1] &quot;Expected Return&quot;    &quot;0.0121400191324028&quot; &quot;Standard Deviation&quot;
-## [4] &quot;0.0499662263608099&quot;</code></pre>
+<pre><code>## [1] &quot;Expected Return&quot;    &quot;0.0121400191324028&quot; &quot;Standard Deviation&quot; &quot;0.0499662263608099&quot;</code></pre>
 </div>
 <div id="e-from-now-on-suppose-we-introduce-a-risk-free-asset-paying-an-interest-rate-r_f-0.4-per-month.-find-the-composition-of-the-tangency-portfolio-its-mean-and-standard-deviation.-draw-the-old-frontier-risky-assets-only-and-the-new-frontier-in-the-same-graph-and-locate-the-risk-free-asset-and-the-tangency-portfolio." class="section level2">
 <h2>e) From now on suppose we introduce a risk-free asset paying an interest rate <span class="math inline">\(r_f = 0.4\%\)</span> per month. Find the composition of the tangency portfolio, its mean and standard deviation. Draw the old frontier (risky assets only) and the new frontier in the same graph and locate the risk-free asset and the tangency portfolio.</h2>
@@ -616,12 +617,9 @@ ggplot(data=NULL, aes(u_sd_port[u_ret_port&gt; as.numeric(E_wt2) &amp; u_ret_por
 <div id="problem-set-3" class="section level1">
 <h1>Problem Set 3</h1>
 <pre class="r"><code>library(sandwich)
-library(plot3D)</code></pre>
-<pre><code>## Warning: package &#39;plot3D&#39; was built under R version 4.0.5</code></pre>
-<pre class="r"><code>library(car)</code></pre>
-<pre><code>## Warning: package &#39;car&#39; was built under R version 4.0.4</code></pre>
-<pre><code>## Loading required package: carData</code></pre>
-<pre class="r"><code>Portfolio25 &lt;- read.csv(&quot;C:/Users/Jt_an/Google Drive/GSE - Finance/1 trim_/Asset pricing_/Problem Sets/PS3/Portfolio25.csv&quot;, sep=&quot;;&quot;)
+library(plot3D)
+library(car)
+Portfolio25 &lt;- read.csv(&quot;C:/Users/Jt_an/Google Drive/GSE - Finance/1 trim_/Asset pricing_/Problem Sets/PS3/Portfolio25.csv&quot;, sep=&quot;;&quot;)
 Factors3&lt;- read.csv(&quot;C:/Users/Jt_an/Google Drive/GSE - Finance/1 trim_/Asset pricing_/Problem Sets/PS3/3Factors.csv&quot;, sep=&quot;;&quot;)
 Factors3&lt;-Factors3[c(-661:-1122),c(-6,-7)]
 Factors5 &lt;- read.csv(&quot;C:/Users/Jt_an/Google Drive/GSE - Finance/1 trim_/Asset pricing_/Problem Sets/PS3/5Factors.csv&quot;, sep=&quot;;&quot;)
