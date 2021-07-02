@@ -1,0 +1,1584 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="Joan Antoni Segui" />
+
+
+<title>Asset Pricing</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/anchor-sections-1.0/anchor-sections.css" rel="stylesheet" />
+<script src="site_libs/anchor-sections-1.0/anchor-sections.js"></script>
+<script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
+<link href="site_libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #ffffff;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Finance Problem Sets</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="asset pricing.html">Speed and Distance</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Asset Pricing</h1>
+<h4 class="author">Joan Antoni Segui</h4>
+
+</div>
+
+
+<div id="problem-set-1" class="section level1">
+<h1>Problem Set 1</h1>
+<pre class="r"><code>library(readxl)
+PS1Data &lt;- read_excel(&quot;C:/Users/Jt_an/Google Drive/GSE - Finance/1 trim_/Asset pricing_/Problem Sets/PS1/PS1Data.xlsx&quot;)</code></pre>
+<div id="textbf1a.-for-each-gamma-compute-the-value-of-textitm-in-each-year.-use-then-the-entire-time-series-of-m-and-r_m-to-compute--covmr_m-and-multiply-it-by-the-mean-of-1r-.-plot-the-resulting-values-against-all-values-of-gamma-which-of-those-values-comes-closest-to-the-models-theoretical-prediction-mean-value-of-r_m-r" class="section level2">
+<h2><span class="math inline">\(\textbf{1a.}\)</span> For each <span class="math inline">\(\gamma\)</span> compute the value of <span class="math inline">\(\textit{m}\)</span> in each year. Use then the entire time series of <span class="math inline">\(m\)</span> and <span class="math inline">\(R_M\)</span> to compute <span class="math inline">\(-cov(m,R_m)\)</span> and multiply it by the mean of <span class="math inline">\(1+r\)</span> . Plot the resulting values against all values of <span class="math inline">\(\gamma\)</span> Which of those values comes closest to the model’s theoretical prediction (mean value of <span class="math inline">\(R_M-r\)</span>)?</h2>
+<pre class="r"><code>gamma&lt;-2:100
+
+m&lt;-t(sapply(PS1Data$dc,function(x) x**-gamma))
+
+cov_&lt;--cov(m,(PS1Data$`Rm-r`+(PS1Data$r-1)))
+
+Rp&lt;-cov_*mean(PS1Data$r)
+
+plot(gamma,Rp,type=&quot;l&quot;,col=&quot;blue&quot;,main=&quot;Risk premium for all Gammas&quot;,xlab=&quot;Gamma&quot;)
+abline(h=mean(PS1Data$`Rm-r`),col=&quot;red&quot;)
+legend(&quot;bottomright&quot;,c(&quot;Estimated Risk premium&quot;,&quot;mean of Rm-r&quot;),fill=c(&quot;blue&quot;,&quot;red&quot;),bty=&quot;n&quot;)</code></pre>
+<p><img src="Asset-Pricing-Problem-Sets_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
+<pre class="r"><code>gamma[which.min(abs(mean(PS1Data$`Rm-r`)-Rp))]</code></pre>
+<pre><code>## [1] 87</code></pre>
+</div>
+<div id="textbf1b.-for-each-gamma-compute-the-inverse-of-the-sample-mean-of-m-and-plot-against-all-values-of-gamma.-which-of-those-values-comes-closest-to-the-models-theoretical-prediction-mean-value-of-1-r" class="section level2">
+<h2><span class="math inline">\(\textbf{1b.}\)</span> For each <span class="math inline">\(\gamma\)</span> compute the inverse of the sample mean of <span class="math inline">\(m\)</span> and plot against all values of <span class="math inline">\(\gamma\)</span>. Which of those values comes closest to the model’s theoretical prediction (mean value of <span class="math inline">\(1 + r\)</span>))?</h2>
+<pre class="r"><code>rf&lt;-apply(m,2,function(x) 1/mean(x))
+plot(gamma,rf,type=&quot;l&quot;,col=&quot;blue&quot;,main=&quot;Risk free for all gammas&quot;)
+abline(h=mean(PS1Data$r),col=&quot;red&quot;)
+legend(&quot;topleft&quot;,c(&quot;Estimated Risk Free&quot;,&quot;mean of Rf&quot;),fill=c(&quot;blue&quot;,&quot;red&quot;),bty=&quot;n&quot;)</code></pre>
+<p><img src="Asset-Pricing-Problem-Sets_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<pre class="r"><code>gamma[which.min(abs(rf-mean(PS1Data$r)))]</code></pre>
+<pre><code>## [1] 2</code></pre>
+</div>
+<div id="textbf1c.-what-conclusions-do-you-draw-from-these-results" class="section level2">
+<h2><span class="math inline">\(\textbf{1c.}\)</span> What conclusions do you draw from these results?</h2>
+<p>Given that <span class="math inline">\(\gamma\)</span> is the risk aversion coefficient it makes sense to demand higher risk premium when your risk aversion is higher. Taking that particular utility function to the data gives us this positive relation between <span class="math inline">\(\gamma\)</span> and risk premium. When observing the mean of <span class="math inline">\(R_m - r\)</span>, i.e., the realized risk premium, comparing to our estimations we see that the model implies a <span class="math inline">\(\gamma=87\)</span> in order to obtain the same results as in the data. The implication of such <span class="math inline">\(\gamma\)</span> is that, if this model is correct, we are extremely risk averse. In reality the estimations of the risk aversion coefficient are not that higher.</p>
+<p>Since <span class="math inline">\((1+r)=1/E(m)\)</span>, <span class="math inline">\(m=dc^{-\gamma}\)</span> and most of <span class="math inline">\(dc\)</span> observations are higher than 1, <span class="math inline">\(m\)</span> is a decreasing function with respect to <span class="math inline">\(\gamma\)</span>. So, <span class="math inline">\((1+r)\)</span> depends positively on <span class="math inline">\(\gamma\)</span>. This is why we seee in the plot a increasing function of <span class="math inline">\(Rf\)</span> respect to <span class="math inline">\(\gamma\)</span>. The <span class="math inline">\(\gamma\)</span> such that is near the realized value of the risk free is <span class="math inline">\(\gamma=2\)</span>, which implies that consumers are extremely low risk averse.</p>
+<p>We can conclude that taking that model to the data we have to reject the model. If the model was well specified, the values of <span class="math inline">\(\gamma\)</span> in each case should be the same.</p>
+</div>
+<div id="textbf2b.-show-that-the-stochastic-discount-factor-with-delta1-in-this-model-becomes" class="section level2">
+<h2><span class="math inline">\(\textbf{2b.}\)</span> Show that the stochastic discount factor with <span class="math inline">\(\delta=1\)</span> in this model becomes</h2>
+<p><span class="math display">\[\begin{equation} 
+m=\frac{U&#39;(c_t)}{U&#39;(c_{t-1})}=\left(\frac{c_t}{c_{t-1}}\right)^{-\gamma}\left(\frac{x_{t-1}}{x_{t-2}}\right)^{\gamma-1}
+\end{equation}\]</span></p>
+<p><span class="math inline">\(U(c_t)=\frac{\left(\frac{c_t}{x_{t-1}}\right)^{1-\gamma}}{1-\gamma}\)</span> <span class="math inline">\(U(c_{t-1})=\frac{\left(\frac{c_{t-1}}{x_{t-2}}\right)^{1-\gamma}}{1-\gamma}\)</span></p>
+<p><span class="math inline">\(U&#39;(c_t)=\frac{{C_t}^{-\gamma}}{{x_{t-1}}^{1-\gamma}}\)</span> <span class="math inline">\(U&#39;(c_{t-1})=\frac{{c_{t-1}}^{-\gamma}}{{x_{t-2}}^{1-\gamma}}\)</span></p>
+<p><span class="math inline">\(\frac{U&#39;(c_t)}{U&#39;(c_{t-1})}=\frac{\frac{{c_t}^{-\gamma}}{{x_{t-1}}^{1-\gamma}}}{\frac{{c_{t-1}}^{-\gamma}}{{x_{t-2}}^{1-\gamma}}}=\frac{c_t^{-\gamma}{x_{t-2}}^{1-\gamma}}{{c_{t-1}}^{-\gamma}{x_{t-1}}^{1-\gamma}}=\left(\frac{c_t}{c_{t-1}}\right)^{-\gamma}\left(\frac{x_{t-2}}{x_{t-1}}\right)^{1-\gamma}=\left(\frac{c_t}{c_{t-1}}\right)^{-\gamma}\left(\frac{x_{t-1}}{x_{t-2}}\right)^{\gamma-1}\)</span></p>
+</div>
+<div id="textbf2c.-for-each-gamma-compute-the-value-of-m-in-each-year-replacing-both-c-and-x-in-the-equation-above-with-aggregate-consumption.-note-that-you-will-lose-one-year-of-our-sample-since-m-involves-both-current-and-lagged-consumption-growth.-compute-then-for-each-gamma-the-value-of--covmr_m-multiply-it-by-the-mean-of-1r-and-plot-the-resulting-values-against-all-values-of-gamma-which-of-those-values-comes-closest-to-the-models-theoretical-prediction-mean-value-of-r_m-r" class="section level2">
+<h2><span class="math inline">\(\textbf{2c.}\)</span> For each <span class="math inline">\(\gamma\)</span> compute the value of m in each year replacing both c and x in the equation above with aggregate consumption. Note that you will lose one year of our sample since m involves both current and lagged consumption growth. Compute then for each <span class="math inline">\(\gamma\)</span> the value of <span class="math inline">\(-cov(m,R_m)\)</span>, multiply it by the mean of <span class="math inline">\(1+r\)</span> and plot the resulting values against all values of <span class="math inline">\(\gamma\)</span> Which of those values comes closest to the model’s theoretical prediction (mean value of <span class="math inline">\(R_M-r\)</span>)?</h2>
+<pre class="r"><code>dc&lt;-PS1Data$dc[-1]
+xc&lt;-PS1Data$dc[-length(PS1Data$dc)]
+
+gamma&lt;-2:100
+
+
+m_dc&lt;-t(sapply(dc,function(x) x**-gamma))
+m_xc&lt;-t(sapply(xc,function(x) x**(gamma-1)))
+m_2&lt;-m_dc*m_xc
+
+cov_2&lt;--cov(m_2,(PS1Data$`Rm-r`[-1]+(PS1Data$r[-1]-1)))
+
+Rp_2&lt;-cov_2*mean(PS1Data$r)
+
+plot(gamma,Rp_2,type=&quot;l&quot;,col=&quot;blue&quot;,main=&quot;Risk premium for all Gammas&quot;,xlab=&quot;Gamma&quot;)
+abline(h=mean(PS1Data$`Rm-r`),col=&quot;red&quot;)
+legend(&quot;topleft&quot;,c(&quot;Estimated Risk premium&quot;,&quot;mean of Rf&quot;),fill=c(&quot;blue&quot;,&quot;red&quot;),bty=&quot;n&quot;)</code></pre>
+<p><img src="Asset-Pricing-Problem-Sets_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<pre class="r"><code>gamma[which.min(abs(mean(PS1Data$`Rm-r`)-Rp_2))]</code></pre>
+<pre><code>## [1] 36</code></pre>
+</div>
+<div id="textbf2d.-compute-the-inverse-of-the-sample-mean-of-m-and-plot-it-for-all-values-of-gamma.which-of-those-values-comes-closest-to-the-models-theoretical-prediction-mean-value-of-1-r" class="section level2">
+<h2><span class="math inline">\(\textbf{2d.}\)</span> Compute the inverse of the sample mean of m and plot it for all values of <span class="math inline">\(\gamma\)</span>.Which of those values comes closest to the model’s theoretical prediction (mean value of <span class="math inline">\(1 + r\)</span>))?</h2>
+<pre class="r"><code>rf_2&lt;-apply(m_2,2,function(x) 1/mean(x))
+plot(gamma,rf_2,type=&quot;l&quot;,col=&quot;blue&quot;,main=&quot;Risk free for all gammas&quot;)
+abline(h=mean(PS1Data$r),col=&quot;red&quot;)
+legend(&quot;bottomleft&quot;,c(&quot;Estimated Risk Free&quot;,&quot;mean of Rf&quot;),fill=c(&quot;blue&quot;,&quot;red&quot;),bty=&quot;n&quot;)</code></pre>
+<p><img src="Asset-Pricing-Problem-Sets_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<pre class="r"><code>gamma[which.min(abs(rf_2-mean(PS1Data$r)))]</code></pre>
+<pre><code>## [1] 2</code></pre>
+</div>
+<div id="textbf2e.-how-does-the-model-compare-relative-to-the-model-with-simpler-preferences-of-question-1" class="section level2">
+<h2><span class="math inline">\(\textbf{2e.}\)</span> How does the model compare relative to the model with simpler preferences of question 1?</h2>
+<p>The difference between this new model and the first one, is that this models takes into account the lagged growth in consumption. Now consumers not only care in todays change in consumption but in the previous change in consumption. Since <span class="math inline">\(m=\left(\frac{c_t}{c_{t-1}}\right)^{-\gamma}\left(\frac{x_{t-1}}{x_{t-2}}\right)^{\gamma-1}\)</span>, a higher risk aversion implies that consumption tomorrow is less valuable. However, the higher the risk aversion, the higher consumers value the lagged changed in consumption.</p>
+<p>Taking this model to the data, the <span class="math inline">\(\gamma\)</span> that explains the observerd risk premium is <span class="math inline">\(\gamma=36\)</span>. This model implies that consumer are less risk averse than in the other model. And <span class="math inline">\(\gamma=2\)</span> is the one which explains the realized value of the risk free. Again, the two values are quite different, so the model is not well specified. However, this model does a better job since <span class="math inline">\(\gamma\)</span> are now closer.</p>
+<p>One other difference with respect the older model is that now the risk free depends negatively on <span class="math inline">\(\gamma\)</span>. That means that a risk averse consumer will accept a risk free assets with a lower return than a consumer who is not that risk averse.</p>
+</div>
+</div>
+<div id="problem-set-2" class="section level1">
+<h1>Problem set 2</h1>
+<pre class="r"><code>library(ggplot2)</code></pre>
+<pre><code>## Warning: package &#39;ggplot2&#39; was built under R version 4.0.4</code></pre>
+<div id="a-find-the-composition-of-two-portfolios-in-the-frontier-the-mean-variance-and-standard-deviation-of-those-portfolios-and-the-covariance-between-them.-note-use-the-portfolios-denoted-by-w_1-and-w_2-in-the-slides." class="section level2">
+<h2>a) Find the composition of two portfolios in the frontier, the mean, variance, and standard deviation of those portfolios, and the covariance between them. (Note: use the portfolios denoted by <span class="math inline">\(w_1\)</span> and <span class="math inline">\(w_2\)</span> in the slides).</h2>
+<pre class="r"><code>IndustryMonthly=read.csv(&quot;C:/Users/Jt_an/Google Drive/GSE - Finance/1 trim_/Asset pricing_/Problem Sets/PS2/Monthly.csv&quot;, sep=&quot;;&quot;)/100
+
+R=apply(IndustryMonthly[,-1],2,mean)
+V=cov(IndustryMonthly[,-1])
+
+v1&lt;-rep(1,length(R))
+v1t&lt;-t(v1)
+w1=(solve(V)%*%R)/as.vector(((v1t%*%solve(V)%*%R)))
+
+w2=(solve(V)%*%v1)/as.vector(v1t%*%solve(V)%*%v1)
+
+mean_w1=t(w1)%*%R
+mean_w2=t(w2)%*%R
+var_w1=t(w1)%*%V%*%w1
+var_w2=t(w2)%*%V%*%w2
+sd_w1=sqrt(var_w1)
+sd_w2=sqrt(var_w2)
+cov_w1_w2=t(w1)%*%V%*%w2
+
+df1&lt;-data.frame(Mean_w1=mean_w1, Mean_w2=mean_w2,Sd_w1=sd_w1,Sd_w2=sd_w2,cov_w1_w2=cov_w1_w2)
+df1</code></pre>
+<pre><code>##      Mean_w1     Mean_w2      Sd_w1      Sd_w2   cov_w1_w2
+## 1 0.01021514 0.008957041 0.03872102 0.03625826 0.001314662</code></pre>
+</div>
+<div id="b-denote-by-p-and-1---p-the-weights-of-those-two-portfolios-in-a-combined-portfolio-p-and-obtain-the-mean-and-variance-of-the-resulting-combined-portfolios-for-different-values-of-p." class="section level2">
+<h2>b) Denote by p and (1 - p) the weights of those two portfolios in a combined portfolio, p, and obtain the mean and variance of the resulting combined portfolios for different values of p.</h2>
+<pre class="r"><code>p_d=seq(-7,0,by=0.01)
+
+d_ret_port=c()
+d_var_port=c()
+for (i in (1:length(p_d))){
+  d_ret_port[i]=p_d[i]*mean_w1+(1-p_d[i])*mean_w2
+  d_var_port[i]=(p_d[i]**2)*var_w1+((1-p_d[i])**2)*var_w2+2*cov_w1_w2*p_d[i]*(1-p_d[i])
+  
+}
+
+d_sd_port=sqrt(d_var_port)
+
+p_u=seq(0,7,by=0.01)
+
+u_ret_port=c()
+u_var_port=c()
+for (i in (1:length(p_u))){
+  u_ret_port[i]=p_u[i]*mean_w1+(1-p_u[i])*mean_w2
+  u_var_port[i]=(p_u[i]**2)*var_w1+((1-p_u[i])**2)*var_w2+2*cov_w1_w2*p_u[i]*(1-p_u[i])
+  
+}
+
+u_sd_port=sqrt(u_var_port)</code></pre>
+</div>
+<div id="c-use-your-answers-to-draw-the-frontier-in-the-mean-standard-deviation-space.-locate-the-minimum-variance-portfolio-and-the-efficient-frontier-in-the-graph." class="section level2">
+<h2>c) Use your answers to draw the frontier in the mean-standard deviation space. Locate the minimum variance portfolio and the efficient frontier in the graph.</h2>
+<pre class="r"><code>mvp_sd=u_sd_port[which.min(u_sd_port)]
+mvp_r=u_ret_port[which.min(u_sd_port)]
+print(c(&quot;MVP&quot;,mvp_r,mvp_sd))</code></pre>
+<pre><code>## [1] &quot;MVP&quot;                 &quot;0.00895704118652522&quot; &quot;0.0362582629394413&quot;</code></pre>
+<pre class="r"><code>ggplot(data=NULL,aes(u_sd_port,u_ret_port,color=&quot;efficient frontier&quot;))+
+      geom_line()+
+          geom_line(aes(d_sd_port,d_ret_port), color = &quot;red&quot;,linetype = &quot;dashed&quot;)+
+        geom_point(aes(u_sd_port[which.min(u_sd_port)],u_ret_port[which.min(u_sd_port)],color=&quot;MVP&quot;),shape=21,size=4,fill=&quot;white&quot;)+
+      xlab(&quot;risk&quot;)+
+      ylab(&quot;returns&quot;)</code></pre>
+<p><img src="Asset-Pricing-Problem-Sets_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+</div>
+<div id="d-suppose-you-are-willing-to-invest-in-a-portfolio-with-a-standard-deviation-as-high-as-5-per-month-but-not-more-than-that.-what-portfolio-would-you-choose-in-order-to-maximize-the-expected-return-of-your-investment-indicate-the-composition-of-the-portfolio-its-expected-return-and-its-standard-deviation.-hint-make-use-of-the-two-fund-separation-theorem." class="section level2">
+<h2>d) Suppose you are willing to invest in a portfolio with a standard deviation as high as 5% per month, but not more than that. What portfolio would you choose in order to maximize the expected return of your investment? Indicate the composition of the portfolio, its expected return and its standard deviation. (Hint: make use of the two-fund separation theorem).</h2>
+<pre class="r"><code>pos=length(u_sd_port[(u_sd_port&lt;0.05)])
+
+
+
+
+ggplot(data=NULL, aes(u_sd_port,u_ret_port,color=&quot;efficient frontier&quot;))+
+  geom_line()+
+  geom_line(aes(d_sd_port,d_ret_port),color=&quot;red&quot;,linetype = &quot;dashed&quot;)+
+  geom_point(aes(0.05,u_ret_port[pos],color=&quot;Portfolio&quot;),shape=21,size=4,fill=&quot;white&quot;)+
+  xlab(&quot;risk&quot;)+
+  ylab(&quot;return&quot;)</code></pre>
+<p><img src="Asset-Pricing-Problem-Sets_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+<pre class="r"><code>erp=p_u[pos]*mean_w1+(1-p_u[pos])*mean_w2
+sdp=sqrt((p_u[pos]**2)*var_w1+((1-p_u[pos])**2)*var_w2+2*cov_w1_w2*p_u[pos]*(1-p_u[pos]))
+
+comp=p_u[pos]*w1+(1-p_u[pos])*w2
+comp</code></pre>
+<pre><code>##              [,1]
+## Food   0.41398242
+## Mines  0.15726770
+## Oil    0.27928083
+## Clths  0.10745098
+## Durbl -0.55103091
+## Chems  0.19082473
+## Cnsum  0.47279619
+## Cnstr -0.10894582
+## Steel -0.55861911
+## FabPr -0.07189721
+## Machn  0.58248268
+## Cars   0.28366350
+## Trans  0.02996680
+## Utils -0.05122777
+## Rtail  0.15451875
+## Finan -0.04844809
+## Other -0.28206567</code></pre>
+<pre class="r"><code>print(c(&quot;Expected Return&quot;, erp, &quot;Standard Deviation&quot;, sdp))</code></pre>
+<pre><code>## [1] &quot;Expected Return&quot;    &quot;0.0121400191324028&quot; &quot;Standard Deviation&quot; &quot;0.0499662263608099&quot;</code></pre>
+</div>
+<div id="e-from-now-on-suppose-we-introduce-a-risk-free-asset-paying-an-interest-rate-r_f-0.4-per-month.-find-the-composition-of-the-tangency-portfolio-its-mean-and-standard-deviation.-draw-the-old-frontier-risky-assets-only-and-the-new-frontier-in-the-same-graph-and-locate-the-risk-free-asset-and-the-tangency-portfolio." class="section level2">
+<h2>e) From now on suppose we introduce a risk-free asset paying an interest rate <span class="math inline">\(r_f = 0.4\%\)</span> per month. Find the composition of the tangency portfolio, its mean and standard deviation. Draw the old frontier (risky assets only) and the new frontier in the same graph and locate the risk-free asset and the tangency portfolio.</h2>
+<pre class="r"><code>rf=0.004
+wt=(solve(V)%*%(R-rf*v1))/as.vector(((v1t%*%solve(V)%*%(R-rf*v1))))
+
+E_wt=t(wt)%*%R
+var_wt=t(wt)%*%V%*%wt
+sd_wt=sqrt(var_wt)
+
+ggplot(data=NULL, aes(u_sd_port,u_ret_port,color=&quot;old-frontier&quot;))+
+  geom_line()+
+  geom_line(aes(d_sd_port,d_ret_port),color=&quot;red&quot;,linetype = &quot;dashed&quot;)+
+  geom_abline(aes(intercept = rf, slope=(E_wt-rf)/(sd_wt),color=&quot;New Frontier&quot;))+
+  geom_point(aes(0,0.004, color=&quot;Risk free&quot;),shape=21,size=4,fill=&quot;white&quot;)+
+  geom_point(aes(sd_wt,E_wt, color=&quot;Tangent Portfolio&quot;),shape=21,size=4, fill=&quot;white&quot;)+
+  
+  xlab(&quot;risk&quot;)+
+  ylab(&quot;return&quot;)</code></pre>
+<p><img src="Asset-Pricing-Problem-Sets_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+</div>
+<div id="f-assume-that-an-investors-preferences-can-be-represented-by-the-following-expected-utility-function-er_p-alphasigma_p2-with-a-0.-using-the-two-fund-separation-theorem-solve-analytically-the-investors-optimal-investment-in-the-tangency-portfolio-p-as-a-function-of-aer_t-and-sigma_t2.-assuming-that-a-4-use-the-previous-solution-to-compute-p-as-well-as-the-investors-optimal-investment-in-each-one-of-the-18-assets-as-a-fraction-of-her-wealth.-locate-the-investors-optimal-portfolio-in-the-mean-standard-deviation-diagram." class="section level2">
+<h2>f) Assume that an investor’s preferences can be represented by the following expected utility function: <span class="math inline">\(E(R_p)-\alpha\sigma_p^2\)</span> with <span class="math inline">\(a &gt; 0\)</span>. Using the two-fund separation theorem, solve analytically the investor’s optimal investment in the tangency portfolio, <span class="math inline">\(p\)</span>, as a function of <span class="math inline">\(a\)</span>,<span class="math inline">\(E(R_t)\)</span>, and <span class="math inline">\(\sigma_T^2\)</span>. Assuming that <span class="math inline">\(a = 4\)</span>, use the previous solution to compute p as well as the investor’s optimal investment in each one of the 18 assets as a fraction of her wealth. Locate the investor’s optimal portfolio in the mean-standard deviation diagram.</h2>
+<p><span class="math inline">\(Max(E(R_p)-\alpha\sigma_p^2)\)</span> where <span class="math inline">\(E(R_P)=pE(R_T)+(1-p)rf\)</span> and <span class="math inline">\(\sigma^2_P=p^2\sigma_T^2\)</span>. So we must maximize <span class="math inline">\(U=pE(R_T)+(1-p)r_f-\alpha p^2\sigma_T^2\)</span> respect to <span class="math inline">\(p\)</span>.</p>
+<p><span class="math inline">\(\frac{\partial U}{\partial p}=E(R_T)-r_f-2\alpha p\sigma_T^2=0\)</span>, solving for p:</p>
+<p><span class="math inline">\(p=\frac{E(R_T)-r_f}{2\alpha \sigma^2_T}\)</span></p>
+<pre class="r"><code>alpha=4
+
+p=(E_wt-rf)/(2*alpha*var_wt)
+
+rfp=1-p
+rownames(rfp)=&quot;Risk free&quot;
+total=sum(as.numeric(p)*comp)+rfp
+rownames(total)=&quot;Total weight&quot;
+
+rbind(as.numeric(p)*comp,rfp,total)</code></pre>
+<pre><code>##                     [,1]
+## Food          0.19511940
+## Mines         0.07412387
+## Oil           0.13163146
+## Clths         0.05064411
+## Durbl        -0.25971349
+## Chems         0.08994007
+## Cnsum         0.22283968
+## Cnstr        -0.05134866
+## Steel        -0.26328999
+## FabPr        -0.03388680
+## Machn         0.27453743
+## Cars          0.13369711
+## Trans         0.01412404
+## Utils        -0.02414482
+## Rtail         0.07282823
+## Finan        -0.02283470
+## Other        -0.13294402
+## Risk free     0.52867709
+## Total weight  1.00000000</code></pre>
+<pre class="r"><code>E_OP=rfp*rf+as.numeric(p)*E_wt
+sd_OP=p*sd_wt
+
+ggplot(data=NULL, aes(u_sd_port,u_ret_port,color=&quot;Old Frontier&quot;))+
+  geom_line()+
+  geom_line(aes(d_sd_port,d_ret_port),color=&quot;red&quot;,linetype = &quot;dashed&quot;)+
+  geom_abline(aes(intercept = rf, slope=(E_wt-rf)/(sd_wt),color=&quot;Efficient Frontier&quot;))+
+  geom_point(aes(0,0.004, color=&quot;Risk free&quot;),shape=21,size=4,fill=&quot;white&quot;)+
+  geom_point(aes(sd_wt,E_wt, color=&quot;Tangent Portfolio&quot;),shape=21,size=4, fill=&quot;white&quot;)+
+  geom_point(aes(sd_OP,E_OP,color=&quot;Investors optimal portfolio&quot;),shape=21,size=4,fill=&quot;white&quot;)+
+  xlab(&quot;risk&quot;)+
+  ylab(&quot;return&quot;)</code></pre>
+<p><img src="Asset-Pricing-Problem-Sets_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+<pre class="r"><code>print(c(&quot;Portfolio Return&quot;,round(E_OP,5),&quot;Standard Error&quot;,round(sd_OP,5)))</code></pre>
+<pre><code>## [1] &quot;Portfolio Return&quot; &quot;0.00741&quot;          &quot;Standard Error&quot;   &quot;0.02064&quot;</code></pre>
+</div>
+<div id="g-suppose-now-that-the-lending-and-borrowing-rates-for-the-risk-free-asset-are-rf_l-0-and-rf_b-0.6-per-month-respectively.-represent-graphically-the-new-efficient-frontier." class="section level2">
+<h2>g) Suppose now that the lending and borrowing rates for the risk-free asset are <span class="math inline">\(rf_L = 0%\)</span> and <span class="math inline">\(rf_{B} = 0.6%\)</span> per month, respectively. Represent graphically the new efficient frontier.</h2>
+<pre class="r"><code>rf2=0
+wt2=(solve(V)%*%(R-rf2*v1))/as.vector(((v1t%*%solve(V)%*%(R-rf2*v1))))
+
+E_wt2=t(wt2)%*%R
+var_wt2=t(wt2)%*%V%*%wt2
+sd_wt2=sqrt(var_wt2)
+
+rf3=0.006
+wt3=(solve(V)%*%(R-rf3*v1))/as.vector(((v1t%*%solve(V)%*%(R-rf3*v1))))
+
+E_wt3=t(wt3)%*%R
+var_wt3=t(wt3)%*%V%*%wt3
+sd_wt3=sqrt(var_wt3)
+
+ggplot(data=NULL, aes(u_sd_port[u_ret_port&gt; as.numeric(E_wt2) &amp; u_ret_port&lt;as.numeric(E_wt3)],u_ret_port[u_ret_port&gt;as.numeric(E_wt2) &amp; u_ret_port&lt;as.numeric(E_wt3)],color=&quot;Efficient Frontier&quot;))+
+  geom_line()+
+  geom_line(aes(c(0,sd_wt2),c(0,E_wt2),color=&quot;Efficient Frontier&quot;))+
+  geom_line(aes(c(sd_wt3,sd_wt3*2),c(E_wt3,E_wt3+sd_wt3*(E_wt3-rf3)/(sd_wt3)),color=&quot;Efficient Frontier&quot;))+
+  geom_point(aes(sd_wt2,E_wt2, color=&quot;Tangent Portfolio1&quot;),shape=21,size=4, fill=&quot;white&quot;)+
+  geom_point(aes(sd_wt3,E_wt3, color=&quot;Tangent Portfolio2&quot;),shape=21,size=4, fill=&quot;white&quot;)+
+  xlab(&quot;risk&quot;)+
+  ylab(&quot;return&quot;)</code></pre>
+<p><img src="Asset-Pricing-Problem-Sets_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+</div>
+</div>
+<div id="problem-set-3" class="section level1">
+<h1>Problem Set 3</h1>
+<pre class="r"><code>library(sandwich)
+library(plot3D)</code></pre>
+<pre><code>## Warning: package &#39;plot3D&#39; was built under R version 4.0.5</code></pre>
+<pre class="r"><code>library(car)</code></pre>
+<pre><code>## Warning: package &#39;car&#39; was built under R version 4.0.4</code></pre>
+<pre><code>## Loading required package: carData</code></pre>
+<pre class="r"><code>Portfolio25 &lt;- read.csv(&quot;C:/Users/Jt_an/Google Drive/GSE - Finance/1 trim_/Asset pricing_/Problem Sets/PS3/Portfolio25.csv&quot;, sep=&quot;;&quot;)
+Factors3&lt;- read.csv(&quot;C:/Users/Jt_an/Google Drive/GSE - Finance/1 trim_/Asset pricing_/Problem Sets/PS3/3Factors.csv&quot;, sep=&quot;;&quot;)
+Factors3&lt;-Factors3[c(-661:-1122),c(-6,-7)]
+Factors5 &lt;- read.csv(&quot;C:/Users/Jt_an/Google Drive/GSE - Finance/1 trim_/Asset pricing_/Problem Sets/PS3/5Factors.csv&quot;, sep=&quot;;&quot;)
+
+colnames(Factors3)[1]=&quot;Dates&quot;
+colnames(Factors5)[1]=&quot;Dates&quot;
+colnames(Portfolio25)[1]=&quot;Dates&quot;
+Factors3$Dates &lt;- as.Date(paste(Factors3$Dates, &quot;01&quot;, sep=&quot;&quot;), &quot;%Y%m%d&quot;)
+Factors5$Dates &lt;- as.Date(paste(Factors5$Dates, &quot;01&quot;, sep=&quot;&quot;), &quot;%Y%m%d&quot;)
+Portfolio25$Dates &lt;- as.Date(paste(Portfolio25$Dates, &quot;01&quot;, sep=&quot;&quot;), &quot;%Y%m%d&quot;)
+
+Factors3[,c(2:length(Factors3))]&lt;-Factors3[,c(2:length(Factors3))]/100
+Factors5[,c(2:length(Factors5))]&lt;-Factors5[,c(2:length(Factors5))]/100
+Portfolio25[,c(2:length(Portfolio25))]&lt;-Portfolio25[,c(2:length(Portfolio25))]/100</code></pre>
+<div id="calculate-for-each-one-of-the-25-portfolios-its-excess-return-in-each-month-return-minus-the-risk-free-rate-and-the-sample-mean-of-the-time-series-of-excess-returns.-display-mean-excess-returns-in-a-5x5-table.-draw-a-3-d-chart-with-the-values-of-the-5x5-matrix.-what-can-you-say-from-those-results" class="section level2">
+<h2>1. Calculate for each one of the 25 portfolios its excess return in each month (return minus the risk-free rate) and the sample mean of the time-series of excess returns. Display mean excess returns in a 5x5 Table. Draw a 3-D chart with the values of the 5x5 matrix. What can you say from those results?</h2>
+<pre class="r"><code>Ereturn=Portfolio25[,2:26] - Factors3$RF
+
+mean_Ereturn=as.data.frame(apply(Ereturn[,c(1:length(Ereturn))],2,mean))
+matrix_Ereturn&lt;-matrix(as.vector(mean_Ereturn[,1]),nrow=5,ncol=5)
+rownames(matrix_Ereturn)=c(&quot;BM1&quot;,&quot;BM2&quot;,&quot;BM3&quot;,&quot;BM4&quot;,&quot;BM5&quot;)
+colnames(matrix_Ereturn)=c(&quot;ME1&quot;,&quot;ME2&quot;,&quot;ME3&quot;,&quot;ME4&quot;,&quot;ME5&quot;)
+as.data.frame(matrix_Ereturn)</code></pre>
+<pre><code>##             ME1         ME2         ME3         ME4         ME5
+## BM1 0.002570662 0.004969903 0.004944982 0.006190803 0.004834288
+## BM2 0.007824065 0.007494220 0.007801842 0.006015517 0.005190511
+## BM3 0.007726098 0.008562809 0.007278445 0.006796744 0.005352152
+## BM4 0.009897741 0.008920026 0.008555186 0.008126045 0.004686283
+## BM5 0.010698936 0.009519132 0.009910895 0.007986829 0.006353497</code></pre>
+<pre class="r"><code>par(cex=1, mai=c(1,1,1,1))
+persp3D(z = matrix_Ereturn, theta = 45, expand = 0.8,border = &quot;white&quot;,
+        main=&quot;Excess Returns&quot;,xlab=&quot;BM&quot;,ylab=&quot;ME&quot;,zlab=&quot;Excess Returns&quot;)</code></pre>
+<p><img src="Asset-Pricing-Problem-Sets_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
+<p>One could expect that this plot would be more or less plain, meaning that all portfolios have the same excess returns. However, it can be seen how excess returns are increasing for portfolios with high book-to-market ratio and for small firms portfolios. One plausible explanation is that those factors (BM and ME) are risk factors. So, they have higher excess returns because they are riskier. Being the riskiest portolios the ones composed of low capitalized firms with high book-to-market ratios.</p>
+</div>
+<div id="run-a-time-series-ols-regression-using-the-entire-sample-period-for-each-portfolio-j.-construct-a-table-like-the-one-in-question-1-with-each-cell-containing-the-estimated-alpha-of-each-portfolio.-show-the-table-graphically.-what-does-the-table-suggest-about-the-validity-of-the-capm-what-portfolios-deviate-the-most-from-the-capm-predictions-test-the-joint-significance-of-pricing-errors-using-the-grs-test-statistic." class="section level2">
+<h2>2. Run a time-series OLS regression (using the entire sample period) for each portfolio j. Construct a table like the one in question 1, with each cell containing the estimated alpha of each portfolio. Show the table graphically. What does the table suggest about the validity of the CAPM? What portfolios deviate the most from the CAPM predictions? Test the joint significance of pricing errors using the GRS test statistic.</h2>
+<pre class="r"><code>regs&lt;-apply(Ereturn[,c(1:length(Ereturn))],2, function(x) lm(x~Factors3$Mkt.RF))
+
+alphas&lt;-sapply(regs, function(x) x$coefficients[1])
+
+matrix_alphas&lt;-matrix(alphas,nrow=5,ncol=5)
+rownames(matrix_alphas)=c(&quot;BM1&quot;,&quot;BM2&quot;,&quot;BM3&quot;,&quot;BM4&quot;,&quot;BM5&quot;)
+colnames(matrix_alphas)=c(&quot;ME1&quot;,&quot;ME2&quot;,&quot;ME3&quot;,&quot;ME4&quot;,&quot;ME5&quot;)
+as.data.frame(matrix_alphas)</code></pre>
+<pre><code>##              ME1          ME2          ME3           ME4           ME5
+## BM1 -0.004651660 -0.002122861 -0.001778042 -3.353608e-05 -0.0001369658
+## BM2  0.001528296  0.001509825  0.002115513  5.497773e-04  0.0004482965
+## BM3  0.002092642  0.003179535  0.002157932  1.663809e-03  0.0010395615
+## BM4  0.004701460  0.003763836  0.003664824  3.287013e-03  0.0002267887
+## BM5  0.005287916  0.003826157  0.004516478  2.461580e-03  0.0014639891</code></pre>
+<pre class="r"><code>par(cex=1, mai=c(1,1,1,1))
+persp3D(z = matrix_alphas, theta = 45, expand = 1.1,
+        border = &quot;white&quot;, main=&quot;Alphas for each portfolio&quot;,xlab=&quot;BM&quot;,ylab=&quot;ME&quot;,zlab=&quot;Alpha&quot;)</code></pre>
+<p><img src="Asset-Pricing-Problem-Sets_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
+<pre class="r"><code>residuals&lt;-sapply(regs, function(x) x$residuals)
+covm&lt;-cov(residuals)
+covm_inv&lt;-solve(covm)
+
+Ftest&lt;-((660-25-1)/25)*(1/(1+(mean(Factors3$Mkt.RF)/sd(Factors3$Mkt.RF))^2))*
+t(alphas)%*%covm_inv%*%t(t(alphas))
+pf(Ftest,25,634,lower.tail=F)</code></pre>
+<pre><code>##              [,1]
+## [1,] 3.943519e-12</code></pre>
+<p>As expected, we got a plot pretty similar than before. Being the portfolios with high BM and low ME those with higher alphas, so those are the portfolios that deviate the most from CAPM predictions. If CAPM was valid, the alphas should be equal to zero. If they are not equal than zero the CAPM is wrong. Alphas greater than zero mean either that we can achieve higher returns without increasing risk, or that we are missing some risk factors.</p>
+<p>The p-value of the GRS test is 3.943519e-12, meaning that we reject the null hyphotesis that all alphas are equal to zero. So, we reject the validity of CAPM.</p>
+</div>
+<div id="run-a-single-cross-sectional-ols-regression-of-mean-excess-returns-on-betas-estimated-in-the-previous-question.-test-the-capm." class="section level2">
+<h2>3. Run a single cross-sectional OLS regression of mean excess returns on betas estimated in the previous question. Test the CAPM.</h2>
+<pre class="r"><code>betas&lt;-sapply(regs, function(x) x$coefficients[2])
+
+reg2&lt;-lm(mean_Ereturn[,1]~betas)
+summary(reg2)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = mean_Ereturn[, 1] ~ betas)
+## 
+## Residuals:
+##        Min         1Q     Median         3Q        Max 
+## -0.0034011 -0.0011828  0.0005559  0.0012309  0.0035124 
+## 
+## Coefficients:
+##              Estimate Std. Error t value Pr(&gt;|t|)   
+## (Intercept)  0.010816   0.002973   3.637  0.00138 **
+## betas       -0.003402   0.002719  -1.251  0.22347   
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.001972 on 23 degrees of freedom
+## Multiple R-squared:  0.06372,    Adjusted R-squared:  0.02301 
+## F-statistic: 1.565 on 1 and 23 DF,  p-value: 0.2235</code></pre>
+<pre class="r"><code>mean_rm&lt;-mean(Factors3$Mkt.RF)
+mean_rm</code></pre>
+<pre><code>## [1] 0.005072424</code></pre>
+<pre class="r"><code>mean_rf&lt;-mean(Factors3$RF)
+mean_rf</code></pre>
+<pre><code>## [1] 0.003830758</code></pre>
+<pre class="r"><code>H0_1&lt;-c(&quot;(Intercept)=0&quot;)
+H0_2&lt;-c(&quot;betas=0.005072424&quot;)
+linearHypothesis(reg2,H0_1)</code></pre>
+<pre><code>## Linear hypothesis test
+## 
+## Hypothesis:
+## (Intercept) = 0
+## 
+## Model 1: restricted model
+## Model 2: mean_Ereturn[, 1] ~ betas
+## 
+##   Res.Df        RSS Df Sum of Sq      F   Pr(&gt;F)   
+## 1     24 0.00014089                                
+## 2     23 0.00008944  1 5.145e-05 13.231 0.001378 **
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>linearHypothesis(reg2,H0_2)</code></pre>
+<pre><code>## Linear hypothesis test
+## 
+## Hypothesis:
+## betas = 0.005072424
+## 
+## Model 1: restricted model
+## Model 2: mean_Ereturn[, 1] ~ betas
+## 
+##   Res.Df        RSS Df  Sum of Sq      F   Pr(&gt;F)   
+## 1     24 0.00012721                                 
+## 2     23 0.00008944  1 3.7771e-05 9.7131 0.004853 **
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>The CAPM implies that <span class="math inline">\(\gamma_0=0\)</span> (we substracted risk free from the returns, so we are regressing the excess returns on betas) and <span class="math inline">\(\gamma_1=E(R_M-R_f)\)</span>. So, we have to test if <span class="math inline">\(\gamma_0=0\)</span> and if <span class="math inline">\(\gamma_1=0.005072424\)</span>. We reject both null hypothesis at 99% level of confidence as p-values are <span class="math inline">\(p-value_{\gamma_0}=0.001378\)</span> and <span class="math inline">\(p-value_{\gamma_1}=0.004853\)</span>, so again we reject CAPM.</p>
+</div>
+<div id="implement-the-two-pass-approach-of-fama-macbeth.-first-estimate-each-stocks-beta-for-each-month-t-using-a-time-series-regression-with-3-years-of-previous-monthly-data-i.e.-from-t---36-to-t---1.-then-run-a-cross-sectional-regression-at-each-time-t-of-excess-returns-on-betas-at-time-t.-compute-the-fama-macbeth-coefficients-and-their-standard-errors.-compare-these-standard-errors-with-the-ols-standard-errors-from-the-previous-question.-did-you-expect-those-differences-explain-why.-test-again-the-capm-using-the-fama-macbeth-estimators-and-their-standard-errors." class="section level2">
+<h2>4. Implement the two-pass approach of Fama-MacBeth. First, estimate each stock’s beta for each month t using a time series regression with 3 years of previous monthly data, i.e., from t - 36 to t - 1. Then, run a cross-sectional regression at each time t of excess returns on betas at time t. Compute the Fama-MacBeth coefficients and their standard errors. Compare these standard errors with the OLS standard errors from the previous question. Did you expect those differences? Explain why. Test again the CAPM using the Fama-MacBeth estimators and their standard errors.</h2>
+<pre class="r"><code>betas_2&lt;-data.frame()
+for (j in 1:length(Ereturn)){
+  
+  for (i in 1:(length(Ereturn$SMALL.LoBM)-36)){
+    regs2&lt;-lm(Ereturn[i:(i+35),j]~Factors3$Mkt.RF[i:(i+35)])
+    betas_2[i,j]&lt;-regs2$coefficients[2]
+  }
+
+}
+names(betas_2)=names(Ereturn[1:25])
+
+estimators&lt;-data.frame(gamma_0=rep(0,624),
+                       gamma_1=rep(0,624))
+for (i in 1:(length(Ereturn$SMALL.LoBM)-36)){
+    reg3&lt;-lm(unlist(Ereturn[(i+36),1:25])~unlist(betas_2[i,]))
+    estimators$gamma_0[i]&lt;-reg3$coefficients[1]
+    estimators$gamma_1[i]&lt;-reg3$coefficients[2]
+}
+
+gamma_0&lt;-mean(estimators$gamma_0)
+gamma_1&lt;-mean(estimators$gamma_1)
+
+
+sd_gamma_0&lt;-sqrt(var(estimators$gamma_0)/length(estimators$gamma_0))
+sd_gamma_1&lt;-sqrt(var(estimators$gamma_1)/length(estimators$gamma_1))
+
+(1-pnorm((gamma_0)/(sd_gamma_0)))</code></pre>
+<pre><code>## [1] 0.000539865</code></pre>
+<pre class="r"><code>(pnorm((gamma_1 - mean(Factors3$Mkt.RF[37:length((Factors3$Mkt.RF))]))/(sd_gamma_1)))</code></pre>
+<pre><code>## [1] 0.01068794</code></pre>
+<p>Now <span class="math inline">\(sd(\gamma_0)=0.002484676\)</span> and <span class="math inline">\(sd(\gamma_1)=0.002827005\)</span>, in Q3 OLS <span class="math inline">\(sd(\gamma_0)=0.002973\)</span> and <span class="math inline">\(sd(\gamma_0)=0.002719\)</span>. The difference between both methods is that in Q3 we regressed the <em>mean</em> excess returns on betas, now in the second step we do not regress the mean of excess returns but we compute rolling window regressions. The standard errors should be different. This is because in Q3 the factor premia <span class="math inline">\(\gamma\)</span> aren’t estimated with the same time-averaging techniques of the Fama-MacBeth method. Errors in Q3 are almost certainly heteroskedastic and autocorrelated, while we assumed no autocorrelation and homoskedasticity. Now, in Q4 by computing the variance from the time series ofestimated coefficients, we are not making any assumption about the errors in the CSR.</p>
+<p>Testing again that <span class="math inline">\(\gamma_0=0\)</span> and <span class="math inline">\(\gamma_1=E(R_M-R_f)\)</span> we reject both null hypothesis with p-value of <span class="math inline">\(p-value_{\gamma_0}=0.000539865\)</span> and <span class="math inline">\(p-value_{\gamma_1}=0.01068794\)</span>. So we reject again CAPM.</p>
+</div>
+<div id="repeat-question-2-for-the-ff-3-factor-model-and-the-ff-5-factor-model-i.e.-estimate-portfolio-alphas-from-a-single-time-series-regression-of-portfolio-excess-returns-on-the-factors-display-estimated-alphas-and-plot-them.-interpret-your-results." class="section level2">
+<h2>5. Repeat question 2 for the FF 3 factor model and the FF 5 factor model, i.e., estimate portfolio alphas from a single time-series regression of portfolio excess returns on the factors, display estimated alphas and plot them. Interpret your results.</h2>
+<pre class="r"><code>regs4&lt;-apply(Ereturn[,c(1:length(Ereturn))],2, 
+             function(x) lm(x~Factors3$Mkt.RF+Factors3$SMB+Factors3$HML))
+
+alphas2&lt;-sapply(regs4, function(x) x$coefficients[1])
+
+matrix_alphas2&lt;-matrix(alphas2,nrow=5,ncol=5)
+rownames(matrix_alphas2)=c(&quot;BM1&quot;,&quot;BM2&quot;,&quot;BM3&quot;,&quot;BM4&quot;,&quot;BM5&quot;)
+colnames(matrix_alphas2)=c(&quot;ME1&quot;,&quot;ME2&quot;,&quot;ME3&quot;,&quot;ME4&quot;,&quot;ME5&quot;)
+as.data.frame(matrix_alphas2)</code></pre>
+<pre><code>##               ME1           ME2           ME3           ME4           ME5
+## BM1 -0.0049758591 -1.670382e-03 -8.288505e-04  0.0011986486  1.666713e-03
+## BM2 -0.0001090178  6.279987e-05  8.302362e-04 -0.0004439674  3.332602e-04
+## BM3 -0.0003275903  7.616360e-04 -4.607832e-05 -0.0002538807  9.084901e-05
+## BM4  0.0017074064  6.612621e-04  7.748190e-04  0.0008169390 -2.159445e-03
+## BM5  0.0013293618 -3.421556e-04  6.842319e-04 -0.0010477452 -1.717761e-03</code></pre>
+<pre class="r"><code>par(cex=1, mai=c(1,1,1,1))
+persp3D(z = matrix_alphas2, theta = 45, expand = 1.1,border = &quot;white&quot;,
+        main=&quot;Alphas 3 Factor Model&quot;,xlab=&quot;BM&quot;,ylab=&quot;ME&quot;,zlab=&quot;Alpha&quot;)</code></pre>
+<p><img src="Asset-Pricing-Problem-Sets_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
+<pre class="r"><code>residuals2&lt;-sapply(regs4, function(x) x$residuals)
+covm2&lt;-cov(residuals2)
+covm_inv2&lt;-solve(covm2)
+
+Ftest2&lt;-((660-25-1)/25)*(1/(1+(mean(Factors3$Mkt.RF)/sd(Factors3$Mkt.RF))^2))*
+t(alphas2)%*%covm_inv2%*%t(t(alphas2))
+pf(Ftest2,25,634,lower.tail=F)</code></pre>
+<pre><code>##              [,1]
+## [1,] 7.668097e-10</code></pre>
+<pre class="r"><code>regs5&lt;-apply(Ereturn[,c(1:length(Ereturn))],2, 
+             function(x) lm(x~Factors5$Mkt.RF+Factors5$SMB+Factors5$HML+Factors5$RMW+Factors5$CMA))
+
+alphas3&lt;-sapply(regs5, function(x) x$coefficients[1])
+
+matrix_alphas3&lt;-matrix(alphas3,nrow=5,ncol=5)
+rownames(matrix_alphas3)=c(&quot;BM1&quot;,&quot;BM2&quot;,&quot;BM3&quot;,&quot;BM4&quot;,&quot;BM5&quot;)
+colnames(matrix_alphas3)=c(&quot;ME1&quot;,&quot;ME2&quot;,&quot;ME3&quot;,&quot;ME4&quot;,&quot;ME5&quot;)
+as.data.frame(matrix_alphas3)</code></pre>
+<pre><code>##               ME1           ME2           ME3           ME4           ME5
+## BM1 -0.0027877272 -7.394001e-04  2.413889e-04  0.0018570498  0.0011545494
+## BM2  0.0013010470 -2.360439e-04  1.848620e-04 -0.0017477582 -0.0008465007
+## BM3 -0.0002080256 -3.497707e-06 -8.659603e-04 -0.0013212948 -0.0007449670
+## BM4  0.0018491742  1.271777e-04 -5.729468e-05  0.0003761968 -0.0024992423
+## BM5  0.0012667386 -3.722946e-04 -6.901872e-05 -0.0011797055 -0.0001488723</code></pre>
+<pre class="r"><code>par(cex=1, mai=c(1,1,1,1))
+persp3D(z = matrix_alphas3, theta = 45,expand = 1.1,
+        border = &quot;white&quot;, main=&quot;Alphas 5 Factor Model&quot;,xlab=&quot;BM&quot;,ylab=&quot;ME&quot;,zlab=&quot;Alpha&quot;)</code></pre>
+<p><img src="Asset-Pricing-Problem-Sets_files/figure-html/unnamed-chunk-19-2.png" width="672" /></p>
+<pre class="r"><code>residuals3&lt;-sapply(regs5, function(x) x$residuals)
+covm3&lt;-cov(residuals3)
+covm_inv3&lt;-solve(covm3)
+
+Ftest3&lt;-((660-25-1)/25)*(1/(1+(mean(Factors3$Mkt.RF)/sd(Factors3$Mkt.RF))^2))*
+t(alphas3)%*%covm_inv3%*%t(t(alphas3))
+pf(Ftest3,25,634,lower.tail=F)</code></pre>
+<pre><code>##              [,1]
+## [1,] 5.902528e-08</code></pre>
+<p>As we have controlled for BM and for EM risk factors, we don’t see the previous patterns in the plots (where the alphas were higher when we were moving through low BM to high BM and through high ME to low ME portfolios). Now, alphas look more erratic. However, we still reject that all alphas are equal to zero. As we have controlled for more risk factors, we have explained a lot of previous alphas. Notice how in the 5 Factor Models alphas are way lower than in the 3 Factor Model, this is because in the 5FM we are controlling even for more risk factors than in 3FM. Nevertheless, there are still some risk factors that we have not taken into account, this is why we are stil rejecting that all alphas are equal to zero.</p>
+</div>
+</div>
+<div id="problem-set-4" class="section level1">
+<h1>Problem set 4</h1>
+<div id="assume-that-asset-returns-are-generated-by-a-linear-two-factor-process-without-idiosyncratic-risk.-the-sensitivity-of-assets-a-and-b-with-respect-to-the-two-risk-factors-betas-are-given-in-the-following-table" class="section level2">
+<h2>1. Assume that asset returns are generated by a linear two-factor process without idiosyncratic risk. The sensitivity of assets A and B with respect to the two risk factors (betas) are given in the following table:</h2>
+<table class="table table-striped" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+Beta_j1
+</th>
+<th style="text-align:right;">
+Beta_j2
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+A
+</td>
+<td style="text-align:right;">
+1.4
+</td>
+<td style="text-align:right;">
+0.8
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+B
+</td>
+<td style="text-align:right;">
+3.0
+</td>
+<td style="text-align:right;">
+0.2
+</td>
+</tr>
+</tbody>
+</table>
+<div id="a-can-you-create-a-portfolio-consisting-of-positions-in-a-and-b-with-sensitivities-2.6-and-0.35-with-respect-to-the-first-and-second-factor-respectively-and-with-sensitivities-2.2-and-0.6-explain-your-results." class="section level3">
+<h3>a) Can you create a portfolio consisting of positions in A and B with sensitivities 2.6 and 0.35 with respect to the first and second factor, respectively? And with sensitivities 2.2 and 0.6? Explain your results.</h3>
+<p>We have three equations and two unknowns. If none of them is a linear combinations of the others, there won’t be a solution. To solve this problem efficiently we can solve only for two equations and see if the third equation holds with the results obtained.</p>
+<p><span class="math display">\[1.4w_a + 3w_b =2.6 \]</span> <span class="math display">\[0.8w_a + 0.2w_b=0.35\]</span> <span class="math display">\[w_a+w_b=1\]</span> Let’s solve for the first and third equations,</p>
+<pre class="r"><code>M=matrix(c(1.4,3,1,1),nrow=2,byrow = T)
+y=c(2.6,1)
+
+w=solve(M,y)
+
+data.frame(&quot;Wa&quot;=w[1],&quot;Wb&quot;=w[2])</code></pre>
+<pre><code>##     Wa   Wb
+## 1 0.25 0.75</code></pre>
+<p>Let’s see if with this weights the restrictions hold</p>
+<pre class="r"><code>round(1.4*w[1]+3*w[2],15)==round(2.6,15)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<pre class="r"><code>round(0.8*w[1]+0.2*w[2],15)==round(0.35,15)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<pre class="r"><code>round(w[1]+w[2],15)==round(1,15)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<p><span class="math display">\[1.4w_a + 3w_b =2.2 \]</span> <span class="math display">\[0.8w_a + 0.2w_b=0.6\]</span> <span class="math display">\[w_a+w_b=1\]</span> Again, solving for the first and third equations,</p>
+<pre class="r"><code>M=matrix(c(1.4,3,1,1),nrow=2,byrow = T)
+y=c(2.2,1)
+
+w=solve(M,y)
+
+data.frame(&quot;Wa&quot;=w[1],&quot;Wb&quot;=w[2])</code></pre>
+<pre><code>##    Wa  Wb
+## 1 0.5 0.5</code></pre>
+<p>Let’s see if with this weights the restrictions hold</p>
+<pre class="r"><code>round(1.4*w[1]+3*w[2],15)==round(2.2,15)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<pre class="r"><code>round(0.8*w[1]+0.2*w[2],15)==round(0.6,15)</code></pre>
+<pre><code>## [1] FALSE</code></pre>
+<pre class="r"><code>round(w[1]+w[2],15)==round(1,15)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<p>For the first case the restrictions hold. Thus, meanining that in the first case the equations were a linear combination. For the second case there isn’t a solution because the equations are not a linear combination, so the system of equations cannot be solved.</p>
+</div>
+<div id="b-consider-now-a-third-asset-c-with-sensitivities-1.0-and-2.0-with-respect-to-the-first-and-second-factors-respectively.-can-you-replicate-now-the-sensitivities-2.2-and-0.6" class="section level3">
+<h3>b) Consider now a third asset, C, with sensitivities 1.0 and 2.0 with respect to the first and second factors respectively. Can you replicate now the sensitivities 2.2 and 0.6?</h3>
+<table class="table table-striped" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+Beta_j1
+</th>
+<th style="text-align:right;">
+Beta_j2
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+A
+</td>
+<td style="text-align:right;">
+1.4
+</td>
+<td style="text-align:right;">
+0.8
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+B
+</td>
+<td style="text-align:right;">
+3.0
+</td>
+<td style="text-align:right;">
+0.2
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+C
+</td>
+<td style="text-align:right;">
+1.0
+</td>
+<td style="text-align:right;">
+2.0
+</td>
+</tr>
+</tbody>
+</table>
+<p><span class="math display">\[1.4w_a + 3w_b +1w_c=2.2 \]</span> <span class="math display">\[0.8w_a + 0.2w_b+2w_c=0.6\]</span> <span class="math display">\[w_a+w_b+w_c=1\]</span></p>
+<pre class="r"><code>M=matrix(c(1.4,3,1,0.8,0.2,2,1,1,1),nrow=3,byrow = T)
+y=c(2.2,0.6,1)
+
+w=solve(M,y)
+
+data.frame(&quot;Wa&quot;=w[1],&quot;Wb&quot;=w[2],&quot;Wc&quot;=w[3])</code></pre>
+<pre><code>##          Wa        Wb        Wc
+## 1 0.3809524 0.5238095 0.0952381</code></pre>
+<p>Let’s see if with this weights the restrictions hold</p>
+<pre class="r"><code>round(1.4*w[1]+3*w[2]+1*w[3],15)==round(2.2,15)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<pre class="r"><code>round(0.8*w[1]+0.2*w[2]+2*w[3],15)==round(0.6,15)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<pre class="r"><code>round(w[1]+w[2]+w[3],15)==round(1,15)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+</div>
+<div id="c-how-would-you-combine-the-above-three-assets-a-b-and-c-of-paragraph-b-so-that-the-resulting-portfolio-shows-identical-sensitivities-to-both-risk-factors" class="section level3">
+<h3>c) How would you combine the above three assets (A, B and C of paragraph b)) so that the resulting portfolio shows identical sensitivities to both risk factors?</h3>
+<p><span class="math display">\[1.4w_a + 3w_b +1w_c=F\]</span> <span class="math display">\[0.8w_a + 0.2w_b+2w_c=F\]</span> <span class="math display">\[w_a+w_b+w_c=1\]</span> So, the first two restrictions are equal:</p>
+<p><span class="math display">\[1.4w_a + 3w_b +1w_c=0.8w_a + 0.2w_b+2w_c \equiv 0.6w_a+2.8w_b-w_c=0\]</span> <span class="math display">\[w_a+w_b+w_c=1\]</span></p>
+<p>From the first equation,</p>
+<p><span class="math display">\[w_a=\frac{wc-2.8w_b}{0.6} \]</span> Plugging it into the second one,</p>
+<p><span class="math display">\[\frac{w_c-2.8w_b}{0.6}+w_b+w_c=1\]</span> <span class="math display">\[w_c-2.8w_b+0.6w_b+0.6w_c=0.6\]</span> <span class="math display">\[w_b=-\frac{3}{11}+\frac{8}{11}wc\]</span> Substituing <span class="math inline">\(w_b\)</span> in <span class="math inline">\(w_a\)</span> equation we get,</p>
+<p><span class="math display">\[w_a=\frac{w_c-2.8(\frac{-3}{11}+\frac{8}{11}w_c)}{0.6}=\frac{14}{11}-\frac{19}{11}w_c\]</span></p>
+<p>So, the solution is:</p>
+<p><span class="math display">\[w_a=\frac{14}{11}-\frac{19}{11}w_c\]</span></p>
+<p><span class="math display">\[w_b=-\frac{3}{11}+\frac{8}{11}wc\]</span></p>
+<p><span class="math display">\[w_c=w_c\]</span></p>
+</div>
+</div>
+<div id="consider-a-one-period-economy-with-two-dates-t0-and-t1.-assume-that-asset-returns-are-generated-by-a-two-factor-process-without-idiosyncratic-risk.-consider-the-information-on-the-expected-returns-and-factor-sensitivities-of-the-three-assets-in-this-economy" class="section level2">
+<h2>2. Consider a one-period economy with two dates, t=0 and t=1. Assume that asset returns are generated by a two-factor process without idiosyncratic risk. Consider the information on the expected returns and factor sensitivities of the three assets in this economy:</h2>
+<table class="table table-striped" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+E.Rj
+</th>
+<th style="text-align:right;">
+Beta_j1
+</th>
+<th style="text-align:right;">
+Beta_j2
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+A
+</td>
+<td style="text-align:right;">
+0.08
+</td>
+<td style="text-align:right;">
+0.6
+</td>
+<td style="text-align:right;">
+1.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+B
+</td>
+<td style="text-align:right;">
+0.12
+</td>
+<td style="text-align:right;">
+0.2
+</td>
+<td style="text-align:right;">
+2.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+C
+</td>
+<td style="text-align:right;">
+0.07
+</td>
+<td style="text-align:right;">
+1.0
+</td>
+<td style="text-align:right;">
+0.5
+</td>
+</tr>
+</tbody>
+</table>
+<div id="a-use-the-apt-equation-to-find-out-if-there-is-an-arbitrage-opportunity-in-this-market.-that-is-check-whether-it-is-possible-to-find-values-lambda_0lambda_1-and-lambda_2-such-that-the-apt-equation-holds-for-the-three-assets" class="section level3">
+<h3>a) Use the APT equation to find out if there is an arbitrage opportunity in this market. That is, check whether it is possible to find values <span class="math inline">\(\lambda_0\)</span>,<span class="math inline">\(\lambda_1\)</span> and <span class="math inline">\(\lambda_2\)</span> such that the APT equation holds for the three assets:</h3>
+<p><span class="math display">\[E(R_j)=\lambda_0+\beta_{j1}\lambda_1+\beta_{j2}\lambda_2\]</span></p>
+<p>We must solve,</p>
+<p><span class="math display">\[0.08=\lambda_0+0.6\lambda_1+\lambda_2\]</span></p>
+<p><span class="math display">\[0.12=\lambda_0+0.2\lambda_1+2\lambda_2\]</span></p>
+<p><span class="math display">\[0.07=\lambda_0+\lambda_1+0.5\lambda_2\]</span></p>
+<pre class="r"><code>M=matrix(c(1,0.6,1,1,0.2,2,1,1,0.5),nrow=3,byrow = T)
+y=c(0.08,0.12,0.07)
+
+lambda=solve(M,y)
+
+data.frame(&quot;lambda_0&quot;=lambda[1],&quot;lambda_1&quot;=lambda[2],&quot;lambda_2&quot;=lambda[3])</code></pre>
+<pre><code>##   lambda_0 lambda_1 lambda_2
+## 1    -0.01     0.05     0.06</code></pre>
+<p>So, the APT equation is:</p>
+<p><span class="math display">\[E(R_j)=-0.01+\beta_{j1}0.05+\beta_{j2}0.06\]</span></p>
+<p>Let’s prove if it holds</p>
+<pre class="r"><code>round(-0.01+0.6*0.05+1*0.06,15)==round(0.08,15) #For asset A</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<pre class="r"><code>round(-0.01+0.2*0.05+2*0.06,15)==round(0.12,15) #For asset B</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<pre class="r"><code>round(-0.01+1*0.05+0.5*0.06,15)==round(0.07,15) #For asset C</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+</div>
+<div id="b-suppose-a-new-asset-d-with-expected-return-of-4-and-betas-2-and--1-with-respect-to-the-first-and-second-factor-respectively-is-introduced-in-this-market-and-nothing-else-changes.-is-it-possible-to-find-values-lambda_0-lambda_1-and-lambda_2-such-that-the-apt-equation-holds-for-the-four-assets" class="section level3">
+<h3>b) Suppose a new asset, D, with expected return of 4% and betas 2 and -1 with respect to the first and second factor, respectively, is introduced in this market and nothing else changes. Is it possible to find values <span class="math inline">\(\lambda_0\)</span>, <span class="math inline">\(\lambda_1\)</span> and <span class="math inline">\(lambda_2\)</span> such that the APT equation holds for the four assets?</h3>
+<p>Now we have four equations and three parameters, unless one of the equations is a linear combination of the others, the system cannot be solved. If the new asset D was a linear combination of the others (so there is a solution), the APT equation would hold for asset D. Let’s see if it holds.</p>
+<p>Recall APT equation, <span class="math display">\[E_{R_j}^{APT}=-0.01+\beta_{j1}0.05+\beta_{j2}0.06\]</span></p>
+<p><span class="math display">\[E_{R_D}^{APT}=-0.01+2(0.05)-1(0.06)=0.03\]</span></p>
+<p>So, <span class="math inline">\(E_{R_D}^{APT} \neq E_{R_D}\)</span>. It is impossible to find lambda values such that the APT holds for all four assets. Asset D is not a linear combination of the other assets.</p>
+</div>
+<div id="c-is-there-an-arbitrage-opportunity-in-the-market-if-so-define-clearly-an-arbitrage-strategy-involving-asset-d-and-its-cash-flows." class="section level3">
+<h3>c) Is there an arbitrage opportunity in the market? If so, define clearly an arbitrage strategy involving asset D and its cash-flows.</h3>
+<p>Yes, there is an arbitrage opportunity. The stock D is undervalued. Its actual return is higher than the APT return. Thus,the price of asset D must increase. So, we can take a long position in asset D, a short position in the portfolio <span class="math inline">\(pd\)</span> and borrow <span class="math inline">\(\frac{0.04-0.03}{1+r_f}=\frac{0.01}{1+rf}\)</span>. As <span class="math inline">\(r_f=-0.01\)</span>, we must then borrow <span class="math inline">\(\frac{0.01}{0.99}=\frac{1}{99}\$\)</span>.</p>
+<table class="table table-striped" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:left;">
+t.0
+</th>
+<th style="text-align:left;">
+t.1
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Long asset D
+</td>
+<td style="text-align:left;">
+-1
+</td>
+<td style="text-align:left;">
+1+E(RD)+2F1-F2=1.04+2F1-F2
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Short Portfolio D
+</td>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:left;">
+-(1+E(RPD)+2F1-F2)=-1.03-2F1+F2
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Loan
+</td>
+<td style="text-align:left;">
+1/99
+</td>
+<td style="text-align:left;">
+-(1/99)*(.99)=-0.01
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TOTAL
+</td>
+<td style="text-align:left;">
+0.0101010101010101
+</td>
+<td style="text-align:left;">
+0
+</td>
+</tr>
+</tbody>
+</table>
+<p>Let’s find how we can construct this mimicking portfolio. To mimick the betas of asset D these equations must hold,</p>
+<p><span class="math display">\[0.6w_a+0.2w_b+w_c=2\]</span> <span class="math display">\[w_a+2w_b+0.5w_c=-1\]</span> <span class="math display">\[w_a+w_b+w_c=1\]</span></p>
+<p>The weights that solve these equations are,</p>
+<pre class="r"><code>M=matrix(c(0.6,0.2,1,1,2,0.5,1,1,1),nrow=3,byrow = T)
+y=c(2,-1,1)
+
+w=solve(M,y)
+
+data.frame(&quot;w_a&quot;=w[1],&quot;w_b&quot;=w[2],&quot;w_c&quot;=w[3])</code></pre>
+<pre><code>##    w_a  w_b w_c
+## 1 -1.5 -0.5   3</code></pre>
+<p>So, the strategy is: Long 1 asset D, long 1.5 asset A, long 0.5 asset B and short 3 asset C, and borrow 1/100.</p>
+<pre class="r"><code>dt=data.frame(&quot;t=0&quot;=c(&quot;-1&quot;,&quot;-1.5&quot;,&quot;-0.5&quot;,&quot;3&quot;,1/99,1/99),&quot;t=1&quot;=c(&quot;1(1.04+2F1-F2)&quot;,&quot;1.5(1.08+0.6F1+F2)&quot;,
+                                  &quot;0.5(1.12+0.2F1+2F2)&quot;, &quot;-3(1.07+F1+0.5F2)&quot;,&quot;-(1/99)*(.99)=-0.01&quot;,0))
+row.names(dt)=c(&quot;Long Asset D&quot;,&quot;Long Asset A&quot;,&quot;Long Asset B&quot;,&quot;Short Asset C&quot;,&quot;Loan&quot;,&quot;TOTAL&quot;)
+kable(dt) %&gt;%
+  kable_styling(bootstrap_options = &quot;striped&quot;,full_width = F)</code></pre>
+<table class="table table-striped" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:left;">
+t.0
+</th>
+<th style="text-align:left;">
+t.1
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Long Asset D
+</td>
+<td style="text-align:left;">
+-1
+</td>
+<td style="text-align:left;">
+1(1.04+2F1-F2)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Long Asset A
+</td>
+<td style="text-align:left;">
+-1.5
+</td>
+<td style="text-align:left;">
+1.5(1.08+0.6F1+F2)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Long Asset B
+</td>
+<td style="text-align:left;">
+-0.5
+</td>
+<td style="text-align:left;">
+0.5(1.12+0.2F1+2F2)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Short Asset C
+</td>
+<td style="text-align:left;">
+3
+</td>
+<td style="text-align:left;">
+-3(1.07+F1+0.5F2)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Loan
+</td>
+<td style="text-align:left;">
+0.0101010101010101
+</td>
+<td style="text-align:left;">
+-(1/99)*(.99)=-0.01
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TOTAL
+</td>
+<td style="text-align:left;">
+0.0101010101010101
+</td>
+<td style="text-align:left;">
+0
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="d-if-a-bond-paying-100-at-the-end-of-the-period-is-introduced-in-this-market-and-nothing-else-changes-what-will-the-no-arbitrage-price-of-that-bond-be" class="section level3">
+<h3>d) If a bond paying 100 at the end of the period is introduced in this market and nothing else changes, what will the no-arbitrage price of that bond be?</h3>
+<p>A bond has <span class="math inline">\(\beta=0\)</span>, and the APT equation is <span class="math inline">\(E(R_j)=-0.01+\beta_{j1}0.05+\beta_{j2}0.06\)</span>. <span class="math inline">\(E(R_f)=-0.01+0*0.05+0*0.06\)</span></p>
+<p>Thus, the return of the risk-free asset is<span class="math inline">\(\lambda_0=r_f=-0.01\)</span>. So, the present value of a 100 face value bond is equal to <span class="math inline">\(\frac{FV}{1+rf}=\frac{100}{1-1/100}=\frac{10000}{99}=101.01...\)</span></p>
+<p>Let’s find how we can construct this mimicking portfolio. To mimimick the betas of asset D those equations must hold,</p>
+<p><span class="math display">\[0.6w_a+0.2w_b+w_c=0\]</span></p>
+<p><span class="math display">\[w_a+2w_b+0.5w_c=0\]</span></p>
+<p><span class="math display">\[w_a+w_b+w_c=1\]</span></p>
+<p>The weights that solve these equations are,</p>
+<pre class="r"><code>M=matrix(c(0.6,0.2,1,1,2,0.5,1,1,1),nrow=3,byrow = T)
+y=c(0,0,1)
+
+w=solve(M,y)
+
+data.frame(&quot;w_a&quot;=w[1],&quot;w_b&quot;=w[2],&quot;w_c&quot;=w[3])</code></pre>
+<pre><code>##   w_a  w_b w_c
+## 1 9.5 -3.5  -5</code></pre>
+<p><span class="math display">\[E(R_pf)=9.5*E(R_A)-3.5*E(R_B)-5E(R_C)=-0.01\]</span></p>
+<pre class="r"><code>dt=data.frame(&quot;t=0&quot;=c(&quot;95000/99&quot;,&quot;-35000/99&quot;,&quot;-50000/99&quot;,&quot;-10000/99=-101.010101&quot;,0),
+              &quot;t=1&quot;=c(&quot;-95000/99(1.08+0.6F1+F2)&quot;,&quot;35000/99(1.12+0.2F1+2F2)&quot;,
+               &quot;50000/99(1.07+F1+0.5F2)&quot;,&quot;(10000/99)*(.99)=100&quot;,0))
+row.names(dt)=c(&quot;Short Asset A&quot;,&quot;Long Asset B&quot;,&quot;Long Asset C&quot;,&quot;Bond&quot;,&quot;TOTAL&quot;)
+kable(dt) %&gt;%
+  kable_styling(bootstrap_options = &quot;striped&quot;,full_width = F)</code></pre>
+<table class="table table-striped" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:left;">
+t.0
+</th>
+<th style="text-align:left;">
+t.1
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Short Asset A
+</td>
+<td style="text-align:left;">
+95000/99
+</td>
+<td style="text-align:left;">
+-95000/99(1.08+0.6F1+F2)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Long Asset B
+</td>
+<td style="text-align:left;">
+-35000/99
+</td>
+<td style="text-align:left;">
+35000/99(1.12+0.2F1+2F2)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Long Asset C
+</td>
+<td style="text-align:left;">
+-50000/99
+</td>
+<td style="text-align:left;">
+50000/99(1.07+F1+0.5F2)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Bond
+</td>
+<td style="text-align:left;">
+-10000/99=-101.010101
+</td>
+<td style="text-align:left;">
+(10000/99)*(.99)=100
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TOTAL
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div id="problem-set-5" class="section level1">
+<h1>Problem Set 5</h1>
+<div id="consider-a-non-dividend-paying-stock-with-spot-price-100-and-1-year-forward-price-105.-a-1-year-european-call-on-the-stock-with-a-strike-price-of-105-trades-at-8-and-the-european-put-with-identical-characteristics-trades-at-10.-is-there-an-arbitrage-opportunity-if-so-construct-an-arbitrage-strategy." class="section level2">
+<h2>1. Consider a non-dividend-paying stock with spot price 100 and 1-year forward price 105. A 1-year European call on the stock with a strike price of 105 trades at 8, and the European put with identical characteristics trades at 10. Is there an arbitrage opportunity? If so, construct an arbitrage strategy.</h2>
+<p>First, let’s compute the risk-free. We know that <span class="math inline">\(F=S_t(1+r)^{T-t}\)</span>. In our case, <span class="math inline">\(105=100(1+r)\)</span>. So, <span class="math inline">\(r=5\%\)</span>.</p>
+<p>The payoffs of a portfolio constructed with one European call option plus investing <span class="math inline">\(K/(1+r)^{T-t}\)</span>, and a portfolio of one European Put option plus one share, are the same. So under the Law of One Price they need to be priced the same. This is known as the Put-Call Parity.</p>
+<p><span class="math display">\[c+\frac{K}{(1+r)^{T-t}}=p+S_T\]</span></p>
+<p>In our case,</p>
+<p><span class="math display">\[8+\frac{105}{1.05}=108\neq110=10+100\]</span></p>
+<p>The portfolio consisted of the European Call plus the bond is underpriced and the portfolio of the European Put plus the stock is overpriced. Therefore, we can build a strategy consisting of going long in the former and short in the latter.</p>
+<table class="table table-striped" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+t=0
+</th>
+<th style="text-align:left;">
+ST&gt;105
+</th>
+<th style="text-align:left;">
+ST&lt;105
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Long Call
+</td>
+<td style="text-align:right;">
+-8
+</td>
+<td style="text-align:left;">
+ST-105
+</td>
+<td style="text-align:left;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Short Put
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+ST-105
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Long K/(1+r) bond
+</td>
+<td style="text-align:right;">
+-100
+</td>
+<td style="text-align:left;">
+105
+</td>
+<td style="text-align:left;">
+105
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Short Stock
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:left;">
+-ST
+</td>
+<td style="text-align:left;">
+-ST
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TOTAL
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:left;">
+0
+</td>
+<td style="text-align:left;">
+0
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="under-the-black-scholes-assumptions-what-is-the-price-of-a-european-put-option-on-a-non-dividend-paying-stock-when-the-stock-price-is-69-the-strike-price-is-70-the-risk-free-interest-rate-is-5-per-annum-the-volatility-is-35-per-annum-and-the-time-to-maturity-is-six-months" class="section level2">
+<h2>2. Under the Black-Scholes assumptions, what is the price of a European put option on a non-dividend-paying stock when the stock price is $69, the strike price is $70, the risk-free interest rate is 5% per annum, the volatility is 35% per annum, and the time to maturity is six months?</h2>
+<p>Let’s define the Call and the Put option according to Black-Scholes formula</p>
+<pre class="r"><code>Put &lt;- function(S, K, r, Ti, sigma) {
+  d1  &lt;-  (log(S/K) + (r + sigma^2/2)*Ti) / (sigma*sqrt(Ti))
+  d2  &lt;-  d1 - sigma*sqrt(Ti)
+  -S * pnorm(-d1) + K*exp(-r*Ti)*pnorm(-d2)
+}
+
+
+Call &lt;- function(S, K, r, Ti, sigma) {
+  d1  &lt;-  (log(S/K) + (r + sigma^2/2)*Ti) / (sigma*sqrt(Ti))
+  d2  &lt;-  d1 - sigma*sqrt(Ti)
+  S * pnorm(d1)  - K*exp(-r*Ti)*pnorm(d2)
+}
+
+#S: Spot Price  
+#K: Strike Price    
+#r: risk-free interest rate 
+#Ti:    Time to Maturity    
+#sigma: Implied annual volatility   
+
+data.frame(&quot;European Put Price&quot;=Put(69,70,0.05,0.5,0.35))</code></pre>
+<pre><code>##   European.Put.Price
+## 1           6.401408</code></pre>
+</div>
+<div id="a-european-call-option-on-a-non-dividend-paying-stock-has-a-market-price-of-2.50.-the-stock-price-is-15-the-exercise-price-is-13-the-time-to-maturity-is-3-months-and-the-risk-free-interest-is-5-per-annum.-what-is-the-implied-volatility-according-to-black-scholes-formula" class="section level2">
+<h2>3. A European call option on a non-dividend-paying stock has a market price of $2.50. The stock price is $15, the exercise price is $13, the time to maturity is 3 months, and the risk-free interest is 5% per annum. What is the implied volatility according to Black-Scholes formula?</h2>
+<p>In order to find the implied volatility, what we can do is to try for different volatilities in our Call formula and look for the volatility that gives the most approximate price to 2.5</p>
+<pre class="r"><code>S &lt;- 15
+C &lt;- 2.5
+K&lt;-13
+Ti&lt;-3/12
+r&lt;-0.05
+
+
+VperSigma &lt;- Call(S,K,r,Ti,seq(0.01,1,0.01))
+IV &lt;- which.min(abs(VperSigma-C)) #Note that position of the seq is equal to the volatility
+print(paste(&quot;Implicit Volatility is around&quot;, IV, &quot;%&quot;))</code></pre>
+<pre><code>## [1] &quot;Implicit Volatility is around 40 %&quot;</code></pre>
+<p>Let’s check,</p>
+<pre class="r"><code>Call(15,13,0.05,3/12,0.4)</code></pre>
+<pre><code>## [1] 2.507234</code></pre>
+</div>
+<div id="compute-the-premium-of-an-american-put-option-on-a-non-dividen-paying-stock-using-a-binomial-tree-with-three-subperiods-and-the-following-data-s_0100-u1.15-d0.9-t1-year-and-k100-where-we-are-using-the-usual-notation.-the-annual-continuosly-compounded-interest-rate-is-r6." class="section level2">
+<h2>4. Compute the premium of an American put option on a non-dividen paying stock using a binomial tree with three subperiods and the following data: <span class="math inline">\(S_0=100\)</span>; <span class="math inline">\(u=1.15\)</span>; <span class="math inline">\(d=0.9\)</span>; <span class="math inline">\(T=1\)</span> year; and <span class="math inline">\(K=100\)</span>, where we are using the usual notation. The annual continuosly compounded interest rate is <span class="math inline">\(r=6%\)</span>.</h2>
+<p><span class="math display">\[f_u=e^{\frac{-rT}{M}}[qf_{uu}+(1-q)f_{ud}]\]</span> <span class="math display">\[f_d=e^{\frac{-rT}{M}}[qf_{ud}+(1-q)f_{dd}]\]</span> <span class="math display">\[q=\frac{e^{rT/M}-d}{u-d} \]</span> We know that the American put option will be exercised in a node where its exercise value is higher than the option’s continuation value. Let’s denote <span class="math inline">\(f^*\)</span> the maximum of the exercise value and the option’s continuation value.</p>
+<p><span class="math display">\[f_u^*=max(f_u,K-S_ou)\]</span> <span class="math display">\[f_d^*=max(f_d,K-S_od)\]</span></p>
+<p><span class="math display">\[f=e^{\frac{-rT}{M}}[qf^*_{u}+(1-q)f^*_{d}]\]</span> First, let’s compute our <span class="math inline">\(q\)</span> and define our variables,</p>
+<pre class="r"><code>S=100
+u=1.15
+d=0.9
+Ti=1
+M=3
+K=100
+r=0.06
+fuuu=0
+fuud=0
+fudd=6.85
+fddd=27.1
+
+
+q=(exp(1)^(r*Ti/M)-d)/(u-d)</code></pre>
+<p>Let’s do backward induction,</p>
+<pre class="r"><code>fuu=max((exp(1)^(-r*Ti/M))*(q*fuuu+(1-q)*fuud),K-S*u*u)
+
+fud=max((exp(1)^(-r*Ti/M))*(q*fuud+(1-q)*fudd),K-S*u*d)
+
+fdd=max((exp(1)^(-r*Ti/M))*(q*fudd+(1-q)*fddd),K-S*d*d)
+
+fu=max((exp(1)^(-r*Ti/M))*(q*fuu+(1-q)*fud),K-S*u)
+
+fd=max((exp(1)^(-r*Ti/M))*(q*fud+(1-q)*fdd),K-S*d)
+
+f=max((exp(1)^(-r*Ti/M))*(q*fu+(1-q)*fd),K-S)
+
+print(c(&quot;America Put Option price: &quot;, f))</code></pre>
+<pre><code>## [1] &quot;America Put Option price: &quot; &quot;6.59309060616495&quot;</code></pre>
+</div>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
