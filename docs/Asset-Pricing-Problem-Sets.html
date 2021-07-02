@@ -308,13 +308,22 @@ $(document).ready(function () {
 
 </div>
 
+<div id="TOC">
+<ul>
+<li><a href="#problem-set-1">Problem Set 1</a></li>
+<li><a href="#problem-set-2">Problem set 2</a></li>
+<li><a href="#problem-set-3">Problem Set 3</a></li>
+<li><a href="#problem-set-4">Problem set 4</a></li>
+<li><a href="#problem-set-5">Problem Set 5</a></li>
+</ul>
+</div>
 
 <div id="problem-set-1" class="section level1">
 <h1>Problem Set 1</h1>
 <pre class="r"><code>library(readxl)
 PS1Data &lt;- read_excel(&quot;C:/Users/Jt_an/Google Drive/GSE - Finance/1 trim_/Asset pricing_/Problem Sets/PS1/PS1Data.xlsx&quot;)</code></pre>
-<div id="textbf1a.-for-each-gamma-compute-the-value-of-textitm-in-each-year.-use-then-the-entire-time-series-of-m-and-r_m-to-compute--covmr_m-and-multiply-it-by-the-mean-of-1r-.-plot-the-resulting-values-against-all-values-of-gamma-which-of-those-values-comes-closest-to-the-models-theoretical-prediction-mean-value-of-r_m-r" class="section level2">
-<h2><span class="math inline">\(\textbf{1a.}\)</span> For each <span class="math inline">\(\gamma\)</span> compute the value of <span class="math inline">\(\textit{m}\)</span> in each year. Use then the entire time series of <span class="math inline">\(m\)</span> and <span class="math inline">\(R_M\)</span> to compute <span class="math inline">\(-cov(m,R_m)\)</span> and multiply it by the mean of <span class="math inline">\(1+r\)</span> . Plot the resulting values against all values of <span class="math inline">\(\gamma\)</span> Which of those values comes closest to the model’s theoretical prediction (mean value of <span class="math inline">\(R_M-r\)</span>)?</h2>
+<div id="for-each-gamma-compute-the-value-of-textitm-in-each-year.-use-then-the-entire-time-series-of-m-and-r_m-to-compute--covmr_m-and-multiply-it-by-the-mean-of-1r-.-plot-the-resulting-values-against-all-values-of-gamma-which-of-those-values-comes-closest-to-the-models-theoretical-prediction-mean-value-of-r_m-r" class="section level2">
+<h2>For each <span class="math inline">\(\gamma\)</span> compute the value of <span class="math inline">\(\textit{m}\)</span> in each year. Use then the entire time series of <span class="math inline">\(m\)</span> and <span class="math inline">\(R_M\)</span> to compute <span class="math inline">\(-cov(m,R_m)\)</span> and multiply it by the mean of <span class="math inline">\(1+r\)</span> . Plot the resulting values against all values of <span class="math inline">\(\gamma\)</span> Which of those values comes closest to the model’s theoretical prediction (mean value of <span class="math inline">\(R_M-r\)</span>)?</h2>
 <pre class="r"><code>gamma&lt;-2:100
 
 m&lt;-t(sapply(PS1Data$dc,function(x) x**-gamma))
@@ -330,8 +339,8 @@ legend(&quot;bottomright&quot;,c(&quot;Estimated Risk premium&quot;,&quot;mean o
 <pre class="r"><code>gamma[which.min(abs(mean(PS1Data$`Rm-r`)-Rp))]</code></pre>
 <pre><code>## [1] 87</code></pre>
 </div>
-<div id="textbf1b.-for-each-gamma-compute-the-inverse-of-the-sample-mean-of-m-and-plot-against-all-values-of-gamma.-which-of-those-values-comes-closest-to-the-models-theoretical-prediction-mean-value-of-1-r" class="section level2">
-<h2><span class="math inline">\(\textbf{1b.}\)</span> For each <span class="math inline">\(\gamma\)</span> compute the inverse of the sample mean of <span class="math inline">\(m\)</span> and plot against all values of <span class="math inline">\(\gamma\)</span>. Which of those values comes closest to the model’s theoretical prediction (mean value of <span class="math inline">\(1 + r\)</span>))?</h2>
+<div id="for-each-gamma-compute-the-inverse-of-the-sample-mean-of-m-and-plot-against-all-values-of-gamma.-which-of-those-values-comes-closest-to-the-models-theoretical-prediction-mean-value-of-1-r" class="section level2">
+<h2>For each <span class="math inline">\(\gamma\)</span> compute the inverse of the sample mean of <span class="math inline">\(m\)</span> and plot against all values of <span class="math inline">\(\gamma\)</span>. Which of those values comes closest to the model’s theoretical prediction (mean value of <span class="math inline">\(1 + r\)</span>))?</h2>
 <pre class="r"><code>rf&lt;-apply(m,2,function(x) 1/mean(x))
 plot(gamma,rf,type=&quot;l&quot;,col=&quot;blue&quot;,main=&quot;Risk free for all gammas&quot;)
 abline(h=mean(PS1Data$r),col=&quot;red&quot;)
@@ -398,6 +407,7 @@ legend(&quot;bottomleft&quot;,c(&quot;Estimated Risk Free&quot;,&quot;mean of Rf
 <div id="problem-set-2" class="section level1">
 <h1>Problem set 2</h1>
 <pre class="r"><code>library(ggplot2)</code></pre>
+<pre><code>## Warning: package &#39;ggplot2&#39; was built under R version 4.0.4</code></pre>
 <div id="a-find-the-composition-of-two-portfolios-in-the-frontier-the-mean-variance-and-standard-deviation-of-those-portfolios-and-the-covariance-between-them.-note-use-the-portfolios-denoted-by-w_1-and-w_2-in-the-slides." class="section level2">
 <h2>a) Find the composition of two portfolios in the frontier, the mean, variance, and standard deviation of those portfolios, and the covariance between them. (Note: use the portfolios denoted by <span class="math inline">\(w_1\)</span> and <span class="math inline">\(w_2\)</span> in the slides).</h2>
 <pre class="r"><code>IndustryMonthly=read.csv(&quot;C:/Users/Jt_an/Google Drive/GSE - Finance/1 trim_/Asset pricing_/Problem Sets/PS2/Monthly.csv&quot;, sep=&quot;;&quot;)/100
@@ -502,7 +512,8 @@ comp</code></pre>
 ## Finan -0.04844809
 ## Other -0.28206567</code></pre>
 <pre class="r"><code>print(c(&quot;Expected Return&quot;, erp, &quot;Standard Deviation&quot;, sdp))</code></pre>
-<pre><code>## [1] &quot;Expected Return&quot;    &quot;0.0121400191324028&quot; &quot;Standard Deviation&quot; &quot;0.0499662263608099&quot;</code></pre>
+<pre><code>## [1] &quot;Expected Return&quot;    &quot;0.0121400191324028&quot; &quot;Standard Deviation&quot;
+## [4] &quot;0.0499662263608099&quot;</code></pre>
 </div>
 <div id="e-from-now-on-suppose-we-introduce-a-risk-free-asset-paying-an-interest-rate-r_f-0.4-per-month.-find-the-composition-of-the-tangency-portfolio-its-mean-and-standard-deviation.-draw-the-old-frontier-risky-assets-only-and-the-new-frontier-in-the-same-graph-and-locate-the-risk-free-asset-and-the-tangency-portfolio." class="section level2">
 <h2>e) From now on suppose we introduce a risk-free asset paying an interest rate <span class="math inline">\(r_f = 0.4\%\)</span> per month. Find the composition of the tangency portfolio, its mean and standard deviation. Draw the old frontier (risky assets only) and the new frontier in the same graph and locate the risk-free asset and the tangency portfolio.</h2>
@@ -605,9 +616,12 @@ ggplot(data=NULL, aes(u_sd_port[u_ret_port&gt; as.numeric(E_wt2) &amp; u_ret_por
 <div id="problem-set-3" class="section level1">
 <h1>Problem Set 3</h1>
 <pre class="r"><code>library(sandwich)
-library(plot3D)
-library(car)
-Portfolio25 &lt;- read.csv(&quot;C:/Users/Jt_an/Google Drive/GSE - Finance/1 trim_/Asset pricing_/Problem Sets/PS3/Portfolio25.csv&quot;, sep=&quot;;&quot;)
+library(plot3D)</code></pre>
+<pre><code>## Warning: package &#39;plot3D&#39; was built under R version 4.0.5</code></pre>
+<pre class="r"><code>library(car)</code></pre>
+<pre><code>## Warning: package &#39;car&#39; was built under R version 4.0.4</code></pre>
+<pre><code>## Loading required package: carData</code></pre>
+<pre class="r"><code>Portfolio25 &lt;- read.csv(&quot;C:/Users/Jt_an/Google Drive/GSE - Finance/1 trim_/Asset pricing_/Problem Sets/PS3/Portfolio25.csv&quot;, sep=&quot;;&quot;)
 Factors3&lt;- read.csv(&quot;C:/Users/Jt_an/Google Drive/GSE - Finance/1 trim_/Asset pricing_/Problem Sets/PS3/3Factors.csv&quot;, sep=&quot;;&quot;)
 Factors3&lt;-Factors3[c(-661:-1122),c(-6,-7)]
 Factors5 &lt;- read.csv(&quot;C:/Users/Jt_an/Google Drive/GSE - Finance/1 trim_/Asset pricing_/Problem Sets/PS3/5Factors.csv&quot;, sep=&quot;;&quot;)
