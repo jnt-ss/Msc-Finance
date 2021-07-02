@@ -5,8 +5,8 @@ navbar:
   left:
     - text: "Home"
       href: index.html
-    - text: "Speed and Distance"
-      href: asset pricing.html
+    - text: "Asset Pricing"
+      href: Asset-Pricing-Problem-Sets.html
 output:
   html_document:
     theme: cosmo
