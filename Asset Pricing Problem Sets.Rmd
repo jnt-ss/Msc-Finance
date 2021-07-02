@@ -1,7 +1,10 @@
 ---
 title: "Asset Pricing"
 author: "Joan Antoni Segui"
-
+output:
+  html_document:
+    toc: true
+    toc_depth: 1
 ---
 
 # Problem Set 1 
@@ -10,7 +13,7 @@ library(readxl)
 PS1Data <- read_excel("C:/Users/Jt_an/Google Drive/GSE - Finance/1 trim_/Asset pricing_/Problem Sets/PS1/PS1Data.xlsx")
 ```
 
-## $\textbf{1a.}$ For each $\gamma$ compute the value of $\textit{m}$ in each year. Use then the entire time series of $m$ and $R_M$ to compute $-cov(m,R_m)$ and multiply it by the mean of $1+r$ . Plot the resulting values against all values of $\gamma$ Which of those values comes closest to the model’s theoretical prediction (mean value of $R_M-r$)?
+## For each $\gamma$ compute the value of $\textit{m}$ in each year. Use then the entire time series of $m$ and $R_M$ to compute $-cov(m,R_m)$ and multiply it by the mean of $1+r$ . Plot the resulting values against all values of $\gamma$ Which of those values comes closest to the model’s theoretical prediction (mean value of $R_M-r$)?
 
 ```{r}
 gamma<-2:100
@@ -31,7 +34,7 @@ gamma[which.min(abs(mean(PS1Data$`Rm-r`)-Rp))]
 ```
 
 
-## $\textbf{1b.}$ For each $\gamma$ compute the inverse of the sample mean of $m$ and plot against all values of $\gamma$. Which of those values comes closest to the model’s theoretical prediction (mean value of $1 + r$))?
+##  For each $\gamma$ compute the inverse of the sample mean of $m$ and plot against all values of $\gamma$. Which of those values comes closest to the model’s theoretical prediction (mean value of $1 + r$))?
 
 
 ```{r}
