@@ -1,0 +1,1266 @@
+---
+title: "High Frequency Trading"
+author: "Joan Antoni Seguí Serra"
+output:
+  html_document:
+    toc: true
+    toc_depth: 1
+knit: (function(input_file, encoding) {
+  out_dir <- 'docs';
+  rmarkdown::render(input_file,
+ encoding=encoding,
+ output_file=file.path(dirname(input_file), out_dir, 'hft.html'))})
+---
+
+# Problem Set 1
+
+```{r}
+library(data.table)
+library(ggplot2)
+library(reshape2)
+library(kableExtra)
+library(knitr)
+options(knitr.table.format = "latex")
+
+```
+
+
+
+## EXERCISE 1
+
+```{r}
+rm(list = ls())
+Stock1LOBLEV <- fread("C:/Users/Jt_an/Google Drive/GSE - Finance/2 trim_/HFT/Assignments/FIRST/Stock1LOBLEV.txt")
+
+
+```
+
+
+```{r}
+Stock1LOBLEV<- Stock1LOBLEV[,.(date,time, sign, quote,vol = nHFTd + nHFTh + HFTd + HFTh)]
+MP<-Stock1LOBLEV[sign==1 | sign==-1,.(midpoint =sum(quote)/2), by="date,time"]
+
+Stock1LOBLEV<- Stock1LOBLEV[MP,on = c(date="date",time="time")]
+
+```
+
+
+- Relative bid-ask spread (spread divided by the quote midpoint)
+
+```{r}
+RS<- Stock1LOBLEV[sign==1,.(RS = abs(midpoint - quote)*2/midpoint*10000), by=.(date,time)]
+
+```
+
+- Log of the dollar depth at the best quotes (natural logarithm of ask_depth + bid_depth in US dollars)
+
+```{r}
+DepthBest <- Stock1LOBLEV[sign==1 | sign==-1,.(depth= log(sum(vol*quote))), by="date,time"]
+```
+
+
+
+- Log of the dollar depth at the 5 best quotes (natural logarithm of the accumulated depth at the best quotes in US dollars)
+
+
+```{r}
+DepthBest5 <- Stock1LOBLEV[between(sign,-5,5),.(depth= log(sum(vol*quote))), by="date,time"]
+```
+
+
+- Log of the dollar depth within 10 ticks from the quote midpoint (same as before, but limiting the computation to the depth posted at or less than 10 ticks from the quote midpoint; ignore the rest of the book)
+
+
+```{r}
+DepthBest10 <- Stock1LOBLEV[abs(midpoint - quote)<= 0.10,.(depth= log(sum(vol*quote))),by="date,time" ]
+```
+
+
+
+Next, for each metric, compute medians across days for each minute of the trading session. Generate a plot with the statistics obtained for each metric (Figure 1a to Figure 1d). On the vertical axis, you must have the median magnitude of the metric. On the horizontal axis, you must have the minute of the trading session. Discuss the regular intraday patterns obtained and its implications for the costs of trading.
+
+```{r}
+fig_1a <- DepthBest[,.(median = median(depth)), by="time"]
+```
+
+
+```{r}
+ggplot(fig_1a, aes(time, median))+
+  geom_line(colour="coral1")+
+  ggtitle("Figure 1A: Median of Depth Best")
+```
+
+```{r}
+fig_1b <- DepthBest5[,.(median = median(depth)), by="time"]
+```
+
+
+```{r}
+ggplot(fig_1b, aes(time, median))+
+  geom_line(colour="coral1")+
+  ggtitle("Figure 1B: Median of Depth Best 5")
+```
+
+
+```{r}
+fig_1c <- DepthBest10[,.(median = median(depth)), by="time"]
+```
+
+
+```{r}
+ggplot(fig_1c, aes(time, median))+
+  geom_line(colour="coral1")+
+  ggtitle("Figure 1C: Median of Depth Best 10")
+```
+
+```{r}
+fig_1d <- RS[,.(median = median(RS)), by="time"]
+```
+
+
+```{r}
+ggplot(fig_1d, aes(time, median))+
+  geom_line(colour="coral1")+
+  ggtitle("Figure 1D: Median of Relative Spread")
+```
+
+
+Consider now RS and DepthTick10 only. Normalize the intraday regular patterns so that they have both mean zero and standard deviation 1. The plot both intraday patterns together into the same figure (Figure 2). What do you conclude about how liquidity providers manage regular variations in the risk of providing liquidity over the trading session?
+
+
+```{r}
+RS_DT10 <- RS[DepthBest10,on = c(date="date",time="time")]
+fig_2 <- RS_DT10[, .(RS=median(RS), depth=median(depth)), by="time"][, .(time,RS=scale(RS), depth=scale(depth))]
+colnames(fig_2)=c("time", "Relative Spread", "Depth")
+fig_2 <- melt(fig_2,id="time")
+
+ggplot(fig_2, aes(time,value, colour=variable))+
+  geom_line()+
+  labs(y="scaled medians","time", title="FIG 2: Scaled Relative Spread and Depth Medians")
+  
+
+  
+
+
+```
+
+
+
+
+## EXERCISE 2
+
+```{r}
+rm(list = ls())
+LiqSample <- fread("C:/Users/Jt_an/Google Drive/GSE - Finance/2 trim_/HFT/Assignments/FIRST/LiqSample.txt")
+```
+
+You are asked to compute median liquidity levels for each metric and minute of the trading session across all the stocks in the sample. Then plot the resulting normalized intraday regular patterns for each metric (Figures 3a to 3d). What do you conclude?
+
+```{r}
+rs <- LiqSample[,.(rs=median(rs)), by="time"][,.(time,rs=scale(rs))]
+
+ggplot(rs, aes(time, rs.V1))+
+  geom_line()+
+  labs(x="time",y="Relative Spread", title ="FIG 3A: Scaled Median Relative Spread")
+```
+
+```{r}
+dbest <- LiqSample[,.(dbest=median(dbest)), by="time"][,.(time,dbest=scale(dbest))]
+
+ggplot(dbest, aes(time, dbest.V1))+
+  geom_line()+
+  labs(x="time",y="Depth Best 1", title ="FIG 3B: Scaled Median Depth Best 1")
+```
+
+
+
+```{r}
+dbest5 <- LiqSample[,.(dbest5=median(dbest5)), by="time"][,.(time,dbest5=scale(dbest5))]
+
+ggplot(dbest5, aes(time, dbest5.V1))+
+  geom_line()+
+  labs(x="time",y="Depth Best 5", title ="FIG 3C: Scaled Median Depth Best 5")
+```
+
+```{r}
+dtick10 <- LiqSample[,.(dtick10=median(dtick10)), by="time"][,.(time,dtick10=scale(dtick10))]
+
+ggplot(dtick10, aes(time, dtick10.V1))+
+  geom_line()+
+  labs(x="time",y="Depth Tick 10", title ="FIG 3D: Scaled Median Depth Tick 10")
+```
+
+
+
+The following step consists on studying the relationship between market capitalization (market value of equity) and liquidity. For that, you need the following file: CapGroup.txt. This file has only two columns: the first one contains the stock code (1 to 120). The second column equals “1” for large caps, “2” for medium caps, and “3” for small caps.
+
+Take all the data in LiqSample.txt that corresponds to large caps and obtain the cross-sectional average intraday regular patterns in liquidity as before. Then, repeat the process for medium caps, and, lastly, for small caps. You must end up with three estimates of intraday regular patterns for each metric, one for each market capitalization subsample.
+
+Plot the estimated regular patterns of the three market capitalization subsamples per metric (Figures 4a to 4d). What do you conclude about the relationship between market capitalization and liquidity?
+
+
+
+
+```{r}
+rm(list = ls())
+LiqSample <- fread("C:/Users/Jt_an/Google Drive/GSE - Finance/2 trim_/HFT/Assignments/FIRST/LiqSample.txt")
+CapGroup <- fread ("C:/Users/Jt_an/Google Drive/GSE - Finance/2 trim_/HFT/Assignments/FIRST/CapGroup.txt")
+LiqSample <- LiqSample[CapGroup, on=c(stock="Stock")]
+```
+
+
+
+```{r}
+
+rs_1 <- LiqSample[Capgroup==1,.(Capgroup,rs=mean(rs)), by="time"]
+rs_2 <- LiqSample[Capgroup==2,.(Capgroup,rs=mean(rs)), by="time"]
+rs_3 <- LiqSample[Capgroup==3,.(Capgroup,rs=mean(rs)), by="time"]
+rs<-rbind(rs_1,rs_2,rs_3)
+rs$Capgroup <- factor(rs$Capgroup)
+
+ggplot(rs, aes(time, rs,colour=Capgroup))+
+  geom_line()+
+  labs(x="time",y="Relative Spread",title="FIG 4A: Cross-sectional average Relative Spread")
+
+
+```
+
+
+
+
+```{r}
+
+dbest_1 <- LiqSample[Capgroup==1,.(Capgroup,dbest=mean(dbest)), by="time"]
+dbest_2 <- LiqSample[Capgroup==2,.(Capgroup,dbest=mean(dbest)), by="time"]
+dbest_3 <- LiqSample[Capgroup==3,.(Capgroup,dbest=mean(dbest)), by="time"]
+dbest<-rbind(dbest_1,dbest_2,dbest_3)
+dbest$Capgroup <- factor(dbest$Capgroup)
+
+ggplot(dbest, aes(time, dbest,colour=Capgroup))+
+  geom_line()+
+  labs(x="time",y="Depth",title="FIG 4B: Cross-sectional average Depth Best")
+
+```
+
+
+
+```{r}
+dbest5_1 <- LiqSample[Capgroup==1,.(Capgroup,dbest5=mean(dbest5)), by="time"]
+dbest5_2 <- LiqSample[Capgroup==2,.(Capgroup,dbest5=mean(dbest5)), by="time"]
+dbest5_3 <- LiqSample[Capgroup==3,.(Capgroup,dbest5=mean(dbest5)), by="time"]
+dbest5<-rbind(dbest5_1,dbest5_2,dbest5_3)
+dbest5$Capgroup <- factor(dbest5$Capgroup)
+
+ggplot(dbest5, aes(time, dbest5,colour=Capgroup))+
+  geom_line()+
+  labs(x="time",y="Depth",title="FIG 4C: Cross-sectional average Depth Best 5")
+```
+
+```{r}
+dtick10_1 <- LiqSample[Capgroup==1,.(Capgroup,dtick10=mean(dtick10)), by="time"]
+dtick10_2 <- LiqSample[Capgroup==2,.(Capgroup,dtick10=mean(dtick10)), by="time"]
+dtick10_3 <- LiqSample[Capgroup==3,.(Capgroup,dtick10=mean(dtick10)), by="time"]
+dtick10<-rbind(dtick10_1,dtick10_2,dtick10_3)
+dtick10$Capgroup <- factor(dtick10$Capgroup)
+
+ggplot(dtick10, aes(time, dtick10,colour=Capgroup))+
+  geom_line()+
+  labs(x="time",y="Depth",title="FIG 4D: Cross-sectional average Depth Tick 10")
+```
+
+
+
+## EXERCISE 3
+
+```{r}
+rm(list = ls())
+NasdaqVolat <- fread("C:/Users/Jt_an/Google Drive/GSE - Finance/2 trim_/HFT/Assignments/FIRST/NasdaqVolat.txt")
+LiqLOB <- fread ("C:/Users/Jt_an/Google Drive/GSE - Finance/2 trim_/HFT/Assignments/FIRST/LiqLOB.txt")
+CapGroup <- fread ("C:/Users/Jt_an/Google Drive/GSE - Finance/2 trim_/HFT/Assignments/FIRST/CapGroup.txt")
+```
+
+
+Select the 10 days with highest volatility and the 10 days with lowest volatility for each stock. Then, extract the data corresponding to the selected days from LiqLOB.txt. This file contains the liquidity statistics per stock, day, and 1-minute snapshot of the LOB. Make sure you add a column identifying whether a given stock-day is a high or a low volatility day. Alternatively, you can create two files, one for high volatility days and another with low volatility days.
+
+
+
+
+```{r}
+
+
+vol_order <- NasdaqVolat[order(stock,-volat)]
+
+vol_high<-vol_order[,lapply(.SD,  function(i) head(i, 10)), by="stock"]
+vol_low<-vol_order[,lapply(.SD,  function(i) tail(i, 10)), by="stock"]
+
+vol_high <- LiqLOB[vol_high, on=c(stock="stock",date="date")]
+vol_low <- LiqLOB[vol_low, on=c(stock="stock",date="date")]
+
+```
+
+
+For each stock, compute the daily median liquidity for both high volatility and low volatility days. You should end up with 240 median liquidity estimates per metric (120 stocks x 2 medians for low and high volatility days).
+
+
+```{r}
+
+liq_high_rs <- vol_high[,.(median=median(rs)) ,by="stock"]
+liq_high_rs <- cbind(liq_high_rs, "Type of day"=rep("1",120))
+
+
+liq_low_rs <- vol_low[,.(median=median(rs)) ,by="stock"]
+liq_low_rs<- cbind(liq_low_rs, "Type of day"=rep("0",120))
+
+liq_rs<- rbind(liq_high_rs,liq_low_rs)
+
+liq_rs <- liq_rs[CapGroup, on=c(stock="Stock")]
+```
+
+
+```{r}
+
+liq_high_dbest <- vol_high[,.(median=median(dbest)) ,by="stock"]
+liq_high_dbest <- cbind(liq_high_dbest, "Type of day"=rep("1",120))
+
+
+liq_low_dbest <- vol_low[,.(median=median(dbest)) ,by="stock"]
+liq_low_dbest<- cbind(liq_low_dbest, "Type of day"=rep("0",120))
+
+liq_dbest<- rbind(liq_high_dbest,liq_low_dbest)
+
+liq_dbest <- liq_dbest[CapGroup, on=c(stock="Stock")]
+```
+
+```{r}
+
+liq_high_dbest5 <- vol_high[,.(median=median(dbest5)) ,by="stock"]
+liq_high_dbest5 <- cbind(liq_high_dbest5, "Type of day"=rep("1",120))
+
+
+liq_low_dbest5 <- vol_low[,.(median=median(dbest5)) ,by="stock"]
+liq_low_dbest5<- cbind(liq_low_dbest5, "Type of day"=rep("0",120))
+
+liq_dbest5<- rbind(liq_high_dbest5,liq_low_dbest5)
+
+liq_dbest5 <- liq_dbest5[CapGroup, on=c(stock="Stock")]
+```
+
+
+
+```{r}
+
+liq_high_dtick10 <- vol_high[,.(median=median(dtick10)) ,by="stock"]
+liq_high_dtick10 <- cbind(liq_high_dtick10, "Type of day"=rep("1",120))
+
+
+liq_low_dtick10 <- vol_low[,.(median=median(dtick10)) ,by="stock"]
+liq_low_dtick10<- cbind(liq_low_dtick10, "Type of day"=rep("0",120))
+
+liq_dtick10<- rbind(liq_high_dtick10,liq_low_dtick10)
+
+liq_dtick10 <- liq_dtick10[CapGroup, on=c(stock="Stock")]
+```
+
+
+
+
+Using the Wilcoxon ranksum test for equality of medians (https://data.library.virginia.edu/the-wilcoxon-rank-sum-test/), determine if there are significant differences in liquidity between high volatility and low volatility days. Then, repeat the exercise but controlling for market capitalization, that is, performing separated tests for large, medium, and small caps. Summarize your findings in Table 1.
+
+```{r}
+
+
+
+wt_dbest_1 <- wilcox.test(median~`Type of day`, data= liq_dbest[liq_dbest$Capgroup==1])
+wt_dbest_2 <- wilcox.test(median~`Type of day`, data= liq_dbest[liq_dbest$Capgroup==2])
+wt_dbest_3 <-wilcox.test(median~`Type of day`, data= liq_dbest[liq_dbest$Capgroup==3])
+wt_dbest_all <-wilcox.test(median~`Type of day`, data= liq_dbest)
+```
+
+
+
+```{r}
+wt_dbest5_1 <- wilcox.test(median~`Type of day`, data= liq_dbest5[liq_dbest5$Capgroup==1])
+wt_dbest5_2 <- wilcox.test(median~`Type of day`, data= liq_dbest5[liq_dbest5$Capgroup==2])
+wt_dbest5_3 <- wilcox.test(median~`Type of day`, data= liq_dbest5[liq_dbest5$Capgroup==3])
+wt_dbest5_all <- wilcox.test(median~`Type of day`, data= liq_dbest5)
+
+```
+
+
+
+
+```{r}
+wt_dtick10_1 <- wilcox.test(median~`Type of day`, data= liq_dtick10[liq_dtick10$Capgroup==1])
+wt_dtick10_2 <- wilcox.test(median~`Type of day`, data= liq_dtick10[liq_dtick10$Capgroup==2])
+wt_dtick10_3 <- wilcox.test(median~`Type of day`, data= liq_dtick10[liq_dtick10$Capgroup==3])
+wt_dtick_all <-wilcox.test(median~`Type of day`, data= liq_dtick10)
+```
+
+
+
+
+```{r}
+wt_rs_1 <- wilcox.test(median~`Type of day`, data= liq_rs[liq_rs$Capgroup==1])
+wt_rs_2 <- wilcox.test(median~`Type of day`, data= liq_rs[liq_rs$Capgroup==2])
+wt_rs_3 <- wilcox.test(median~`Type of day`, data= liq_rs[liq_rs$Capgroup==3])
+wt_rs_all <- wilcox.test(median~`Type of day`, data= liq_rs)
+```
+
+
+```{r}
+wt_data <- data.frame("RS"=c(wt_rs_1$p.value,wt_rs_2$p.value,wt_rs_3$p.value,wt_rs_all$p.value),
+                      "DBest"=c(wt_dbest_1$p.value,wt_dbest_2$p.value,wt_dbest_3$p.value,wt_dbest_all$p.value),
+                      "DBest5"=c(wt_dbest5_1$p.value,wt_dbest5_2$p.value,wt_dbest5_3$p.value,wt_dbest5_all$p.value),
+                      "Dtick10"=c(wt_dtick10_1$p.value,wt_dtick10_2$p.value,wt_dtick10_3$p.value,wt_dtick_all$p.value))
+rownames(wt_data)<-c("big","medium","small","all")
+```
+
+
+```{r}
+kable(wt_data)
+```
+
+
+```{r}
+
+```
+
+
+
+To provide robustness to your conclusion, run the following regression for each daily liquidity metric:
+
+
+$$Liq_{i,d}=\beta_0+\beta_1HVol_{i,d}+\epsilon_{i,d}$$
+
+
+where $Liq_{i,d}$ is the liquidity metric for stock i and day d, $HVol_{i,d}$ is a dummy variable that equals 1 for high volatility days and 0 otherwise, and $\epsilon_{i,d}$ is the residual of the regression. Report the estimated beta coefficients in Table 2. Notice that you have data on 120 stocks, 20 days per stock, but the days are not the same for all stocks. So, this is not a proper panel. Therefore, just estimate the model by OLS
+
+
+```{r}
+lm_rs<-lm(liq_rs$median~liq_rs$`Type of day`)
+
+lm_dbest<-lm(liq_dbest$median~liq_dbest$`Type of day`)
+
+lm_dbest5<-lm(liq_dbest5$median~liq_dbest5$`Type of day`)
+
+lm_dtick10<-lm(liq_dtick10$median~liq_dtick10$`Type of day`)
+
+lm_data <- data.frame("RS"=c(lm_rs$coefficients),"DBest"=lm_dbest$coefficients,"DBest5"=lm_dbest5$coefficients,"Dtick10"=lm_dtick10$coefficients)
+rownames(lm_data)=c("intercept","beta")
+
+kable(lm_data)
+```
+
+
+
+# Problem set 2
+
+---
+```{r}
+library(data.table)
+library(reshape2)
+library(ggplot2)
+#Parameters
+p<-.65 #probability of buyer-initiated trade
+theta_0<-0.5 #initial dealer's belief
+pi<-0.3 #probability of informed trader
+v_H<-102
+v_L<-98
+```
+Functions
+```{r}
+#Binomial sample generator
+generate_sample_fun<-function(size,p){#1 is buyer initiated, -1 seller
+sample(c(1,-1),size,TRUE,prob=c(p,1-p))
+}
+
+#trade paths
+
+trade_paths_dt<-function(q,size,p){
+  m<-c()
+  for (i in 1:q){
+    set.seed(4*i*q)
+    m<-cbind(m,generate_sample_fun(size,p))
+    dat<-cbind(as.data.frame(m))
+  }
+return(as.data.frame(dat))
+}
+
+#A generic data.frame plotting function
+
+plotter<-function(data){data<-as.data.table(data)
+  dat<-as.data.table(cbind(id=1:length(data[[1]]),data))
+  datmelt<-melt(id.vars="id",dat)
+ ggplot(datmelt, 
+         aes(x = id, y = value, color=variable))+theme_bw()+
+    xlab("X LABEL")+ylab("Y LABEL")+geom_line()+
+    ggtitle("TITLE")
+}
+
+#Order imbalance function
+OI_fun<-function(trades_){OI_<-c()
+for (i in 1:length(trades_)){OI_[i]<-(length(trades_[trades_[1:i]==1])-length(trades_[trades_[1:i]==-1]))/(length(trades_[trades_[1:i]==1])+length(trades_[trades_[1:i]==-1]))}
+return(OI_)
+}
+#Theta function
+
+theta_fun<-function(trade_sequence,pi,theta_0){theta_seq<-c(theta_0)
+  for(i in 2:length(trade_sequence)){
+    if(trade_sequence[i-1]==1){
+      theta_seq[i]<-theta_seq[i-1]*((.5*(1+pi))/((pi*theta_seq[i-1])+.5*(1-pi)))
+    }
+    else(theta_seq[i]<-theta_seq[i-1]*((.5*(1-pi))/((pi*(1-theta_seq[i-1]))+.5*(1-pi))))
+  }
+return(theta_seq)
+}
+#Price function
+price_fun<-function(beliefs,high,low){
+  beliefs*high+(1-beliefs)*low
+}#recall vectorized function nature: applies over all vector, regardless of recursion or not
+
+#Pricing error function
+pricing_error_fun<-function(price_series){
+  (price_series-v_H)^2
+}
+
+```
+1a-1c
+```{r}
+#Generating a random trading session
+one_session<-as.data.table((trade_paths_dt(1,100,p)))#sequence of trades, one per t
+#names(one_session)<-c("type_of_trade")
+#time series of theta
+one_theta_series<-theta_fun(one_session[[1]],pi,theta_0)
+#accumulated OI
+one_OI_series<-OI_fun(one_session[[1]])
+#now we build the time series of prices, which under perfect competition are equal to the efficient price
+one_price_series<-price_fun(one_theta_series,v_H,v_L)
+one_pricing_error_series<-pricing_error_fun(one_price_series)
+#apply plotter to each of these functions
+plotter(one_OI_series)+ggtitle("Figure 1a")+ theme(legend.position="none")+ylab("OI at time t")+xlab("t")
+plotter(one_theta_series)+ggtitle("Figure 1b")+ theme(legend.position="none")+ylab("Theta at time t")+xlab("t")
+plotter(one_pricing_error_series)+ggtitle("Figure 1c")+ theme(legend.position="none")+ylab("PE at time t")+xlab("t")
+
+```
+
+
+Figure 2
+```{r}
+#ask quotes
+asks_<-c()
+
+for (i in 2:length(one_price_series)){
+  asks_[i]<-one_price_series[i-1]+(((pi*one_theta_series[i-1])*(1-one_theta_series[i-1])))/((pi*(one_theta_series[i-1]))+.5*(1-pi))*(v_H-v_L)
+  
+}
+#bid quotes
+bids_<-c()
+#NOTE: asks and bids have one initial NA due to  formula using t-1
+for (i in 2:length(one_price_series)){
+  bids_[i]<-one_price_series[i-1]-(((pi*one_theta_series[i-1])*(1-one_theta_series[i-1])))/((pi*(1-one_theta_series[i-1]))+.5*(1-pi))*(v_H-v_L)
+}
+#plotting everything
+plotter(as.data.table(cbind(asks=asks_[2:100],bids=bids_[2:100],price=one_price_series[1:99],v_H=rep(v_H,99),v_L=rep(v_L,99))))+ggtitle("Figure 2")+ theme(legend.title = element_blank())+ylab("")+xlab("t")
+
+```
+Figures 3a-3c
+```{r}
+#10 random trading sessions
+ten_sessions<-as.data.table((trade_paths_dt(10,100,p)))
+#10 order imbalance time series
+ten_OI_series<-lapply(ten_sessions,OI_fun)
+#10 time series of theta
+ten_theta_series<-lapply(ten_sessions,theta_fun,pi,theta_0)
+#10 price and pricing error time series
+ten_price_series<-lapply(ten_theta_series,price_fun,v_H,v_L)
+ten_pricing_error_series<-lapply(ten_price_series,pricing_error_fun)
+
+#Plotting each case
+
+plotter(ten_OI_series)+ggtitle("Figure 3a")+ theme(legend.title = element_blank())+ylab("OI at time t")+xlab("t")+ theme(legend.position = "none")
+plotter(ten_theta_series)+ggtitle("Figure 3b")+ theme(legend.position = "none")+ylab("Theta at time t")+xlab("t")
+plotter(ten_pricing_error_series)+ggtitle("Figure 3c")+ theme(legend.title = element_blank())+ylab("PE at time t")+xlab("t")+ theme(legend.position = "none")
+
+```
+Figures 4a-4c
+```{r}
+#First we need to generate 500 trading sessions per value of p of a buying initiated trade (which is a functin of pi)
+pi_vector_<-c(0.1,0.3,0.5,0.7,0.9)
+p_vector_<-c() #a vector of ps
+for (i in 1:length(pi_vector_)){
+  p_vector_[i]<-(1+pi_vector_[i])*.5
+}
+#Now we can generate 500, 100-trade trading sessions per p
+master_dt<-as.data.table(c())
+
+for (i in 1:length(pi_vector_)){
+  master_dt<-cbind(master_dt,trade_paths_dt(500,100,p_vector_[i]))}
+
+#A quick sanity check for the trade session simulations under different ps (sum should be greater the larger the p)
+#sum(master_dt[,1:500])
+#sum(master_dt[,501:1000])
+#sum(master_dt[,1001:1500])
+#sum(master_dt[,1501:2000])
+#sum(master_dt[,2001:2500])
+
+#Simulating and averaging 500 order imbalances paths per pi
+#pi 0.1
+fivehundred_OI_0.1<-as.data.table(lapply(master_dt[,1:500],OI_fun))
+
+average_OI_500_0.1<-fivehundred_OI_0.1[,rowMeans(.SD)]
+
+#pi 0.3
+fivehundred_OI_0.3<-as.data.table(lapply(master_dt[,501:1000],OI_fun))
+
+average_OI_500_0.3<-fivehundred_OI_0.3[,rowMeans(.SD)]
+#pi 0.5
+fivehundred_OI_0.5<-as.data.table(lapply(master_dt[,1001:1500],OI_fun))
+
+average_OI_500_0.5<-fivehundred_OI_0.5[,rowMeans(.SD)]
+#pi 0.7
+fivehundred_OI_0.7<-as.data.table(lapply(master_dt[,1501:2000],OI_fun))
+
+average_OI_500_0.7<-fivehundred_OI_0.7[,rowMeans(.SD)]
+#pi 0.9
+fivehundred_OI_0.9<-as.data.table(lapply(master_dt[,2001:2500],OI_fun))
+
+average_OI_500_0.9<-fivehundred_OI_0.9[,rowMeans(.SD)]
+
+#into a single dt
+avg_OI_500<-as.data.table(cbind(average_OI_500_0.1=average_OI_500_0.1,average_OI_500_0.3=average_OI_500_0.3,average_OI_500_0.5=average_OI_500_0.5,average_OI_500_0.7=average_OI_500_0.7,average_OI_500_0.9=average_OI_500_0.9))
+
+#Simulating and averaging 500 theta paths per pi
+#pi 0.1
+fivehundred_theta_0.1<-as.data.table(lapply(master_dt[,1:500],theta_fun,pi_vector_[1],theta_0))
+
+average_theta_500_0.1<-fivehundred_theta_0.1[,rowMeans(.SD)]
+#pi 0.3
+fivehundred_theta_0.3<-as.data.table(lapply(master_dt[,501:1000],theta_fun,pi_vector_[2],theta_0))
+
+average_theta_500_0.3<-fivehundred_theta_0.3[,rowMeans(.SD)]
+#pi 0.5
+fivehundred_theta_0.5<-as.data.table(lapply(master_dt[,1001:1500],theta_fun,pi_vector_[3],theta_0))
+
+average_theta_500_0.5<-fivehundred_theta_0.5[,rowMeans(.SD)]
+#pi 0.7
+fivehundred_theta_0.7<-as.data.table(lapply(master_dt[,1501:2000],theta_fun,pi_vector_[4],theta_0))
+
+average_theta_500_0.7<-fivehundred_theta_0.7[,rowMeans(.SD)]
+#pi 0.9
+fivehundred_theta_0.9<-as.data.table(lapply(master_dt[,2001:2500],theta_fun,pi_vector_[5],theta_0))
+
+average_theta_500_0.9<-fivehundred_theta_0.9[,rowMeans(.SD)]
+
+#into a single dt
+avg_theta_500<-as.data.table(cbind(average_theta_500_0.1=average_theta_500_0.1,average_theta_500_0.3=average_theta_500_0.3,average_theta_500_0.5=average_theta_500_0.5,average_theta_500_0.7=average_theta_500_0.7,average_theta_500_0.9=average_theta_500_0.9))
+
+#Simulating and averaging 500 Pricing Error paths per pi
+#pi 0.1
+fivehundred_pricingerrors_0.1<-as.data.table(pricing_error_fun(price_fun(fivehundred_theta_0.1,v_H,v_L)))
+average_pricing_errors_500_0.1<-fivehundred_pricingerrors_0.1[,rowMeans(.SD)]
+
+#pi 0.3
+fivehundred_pricingerrors_0.3<-as.data.table(pricing_error_fun(price_fun(fivehundred_theta_0.3,v_H,v_L)))
+average_pricing_errors_500_0.3<-fivehundred_pricingerrors_0.3[,rowMeans(.SD)]
+
+#pi 0.5
+fivehundred_pricingerrors_0.5<-as.data.table(pricing_error_fun(price_fun(fivehundred_theta_0.5,v_H,v_L)))
+average_pricing_errors_500_0.5<-fivehundred_pricingerrors_0.5[,rowMeans(.SD)]
+
+#pi 0.7
+fivehundred_pricingerrors_0.7<-as.data.table(pricing_error_fun(price_fun(fivehundred_theta_0.7,v_H,v_L)))
+average_pricing_errors_500_0.7<-fivehundred_pricingerrors_0.7[,rowMeans(.SD)]
+
+#pi 0.9
+fivehundred_pricingerrors_0.9<-as.data.table(pricing_error_fun(price_fun(fivehundred_theta_0.9,v_H,v_L)))
+average_pricing_errors_500_0.9<-fivehundred_pricingerrors_0.9[,rowMeans(.SD)]
+
+#into a single dt
+avg_pricing_errors_500<-as.data.table(cbind(average_pricing_errors_500_0.1=average_pricing_errors_500_0.1,average_pricing_errors_500_0.3=average_pricing_errors_500_0.3,average_pricing_errors_500_0.5=average_pricing_errors_500_0.5,average_pricing_errors_500_0.7=average_pricing_errors_500_0.7,average_pricing_errors_500_0.9=average_pricing_errors_500_0.9))
+
+#names(avg_pricing_errors_500)<-c("average_pricing_errors_500_0.1","average_pricing_errors_500_0.2","","","")
+
+#plotting
+
+setnames(avg_OI_500,names(avg_OI_500),c("0.1","0.3","0.5","0.7","0.9"))
+setnames(avg_theta_500,names(avg_theta_500),c("0.1","0.3","0.5","0.7","0.9"))
+setnames(avg_pricing_errors_500,names(avg_pricing_errors_500),c("0.1","0.3","0.5","0.7","0.9"))
+
+plotter(avg_OI_500)+ggtitle("Figure 4a")+theme(legend.title = element_blank())+ylab("OI under varying pi")+xlab("t")
+plotter(avg_theta_500)+ggtitle("Figure 4b")+theme(legend.title = element_blank())+ylab("Theta under varying pi")+xlab("t")
+plotter(avg_pricing_errors_500)+ggtitle("Figure 4c")+theme(legend.title = element_blank())+ylab("PE under varying pi")+xlab("t")
+
+
+```
+Figures 5a-5c
+```{r}
+#now we want to investigate if convergence happens for pi=0.1 if the number of trades goes to 1000 instead of 100
+thousand_trade_fivehundred_sessions<-as.data.table(trade_paths_dt(500,1000,p_vector_[1]))#p of .55 corresponds to pi of 0.1
+#on to computing the average order imbalance across the 500 1000-trade sessions
+thousand_OI_0.1<-as.data.table(lapply(thousand_trade_fivehundred_sessions,OI_fun))
+
+average_OI_1000_0.1<-thousand_OI_0.1[,rowMeans(.SD)]
+#now the thetas
+thousand_theta_0.1<-as.data.table(lapply(thousand_trade_fivehundred_sessions,theta_fun,pi_vector_[1],theta_0))
+
+average_theta_1000_0.1<-thousand_theta_0.1[,rowMeans(.SD)]
+
+#and lastly, the Pricing Errors
+thousand_pricingerrors_0.1<-as.data.table(pricing_error_fun(price_fun(thousand_theta_0.1,v_H,v_L)))
+
+average_pricing_errors_1000_0.1<-thousand_pricingerrors_0.1[,rowMeans(.SD)]
+
+
+#plotting
+plotter(average_OI_1000_0.1)+ggtitle("Figure 5a")+theme(legend.position="none")+ylab("OI")+xlab("t")
+plotter(average_theta_1000_0.1)+ggtitle("Figure 5b")+ theme(legend.position="none")+ylab("Theta")+xlab("t")
+plotter(average_pricing_errors_1000_0.1)+ggtitle("Figure 5c")+ theme(legend.position="none")+ylab("PE")+xlab("t")
+
+```
+Figure 6
+```{r}
+#A function for computing the time series of the spread over the trading session
+spread_fun<-function(theta,pi,v_H,v_L){
+  spread<-c()
+  for (i in 2:length(theta)){
+    spread[i]<-(((pi*theta[i-1]*(1-theta[i-1]))/(pi*theta[i-1]+0.5*(1-pi)))+((pi*theta[i-1]*(1-theta[i-1]))/(pi*(1-theta[i-1]+0.5*(1-pi)))))*(v_H-v_L)
+  }
+  return(spread)
+}
+#Applying the function to 500 simulations for each pi and averaging them
+#pi 0.1
+fivehundred_st_0.1<-as.data.table(lapply(fivehundred_theta_0.1,spread_fun,pi_vector_[1],v_H,v_L))
+average_st_500_0.1<-fivehundred_st_0.1[,rowMeans(.SD)]
+#pi 0.3
+fivehundred_st_0.3<-as.data.table(lapply(fivehundred_theta_0.3,spread_fun,pi_vector_[2],v_H,v_L))
+average_st_500_0.3<-fivehundred_st_0.3[,rowMeans(.SD)]
+#pi 0.5
+fivehundred_st_0.5<-as.data.table(lapply(fivehundred_theta_0.5,spread_fun,pi_vector_[3],v_H,v_L))
+average_st_500_0.5<-fivehundred_st_0.5[,rowMeans(.SD)]
+#pi 0.7
+fivehundred_st_0.7<-as.data.table(lapply(fivehundred_theta_0.7,spread_fun,pi_vector_[4],v_H,v_L))
+average_st_500_0.7<-fivehundred_st_0.7[,rowMeans(.SD)]
+#pi 0.9
+fivehundred_st_0.9<-as.data.table(lapply(fivehundred_theta_0.9,spread_fun,pi_vector_[5],v_H,v_L))
+average_st_500_0.9<-fivehundred_st_0.9[,rowMeans(.SD)]
+
+#NOTE: Missing (at t=1) values due to spread formula (eq 11) are removed from plot
+
+
+
+plotter(cbind("0.1"=average_st_500_0.1[2:length(average_st_500_0.1)],"0.3"=average_st_500_0.3[2:length(average_st_500_0.3)],"0.5"=average_st_500_0.5[2:length(average_st_500_0.5)],"0.7"=average_st_500_0.7[2:length(average_st_500_0.7)],"0.9"=average_st_500_0.9[2:length(average_st_500_0.9)]))+ggtitle("Figure 6")+theme(legend.title = element_blank())+ylab("St due to beliefs from different Pi")+xlab("t")
+
+
+```
+Figures 7a-7c
+```{r}
+#We now want to vary fundamental volatility
+mu_0<-100
+k<-c(2,5,10,20,50)
+vec_v_H<-c()
+for (i in 1:length(k)){
+  vec_v_H[i]<-mu_0*(1+k[i]/100)
+}
+vec_v_L<-c()
+for (i in 1:length(k)){
+  vec_v_L[i]<-mu_0*(1-k[i]/100)
+}
+
+vec_High_Low<-vec_v_H-vec_v_L
+
+#Now we run the simulations keeping pi at 0.3 and varying through fundamental volatilities
+#master_dt[,501:1000] holds the 500 trading sessions when pi=0.3
+#average_theta_500_0.3 can be called, theta function unaffected by vH or vL
+#What changes is the function for price, which needs to be run several times with varying volatilities:
+#for first fundamental vol, already done so we set
+#4 vol
+average_pricing_error_fundvol_4<-average_pricing_errors_500_0.3
+#now on to the rest
+#10 vol
+fivehundred_pricingerrors_fundvol_10<-as.data.table(pricing_error_fun(price_fun(fivehundred_theta_0.3,vec_v_H[2],vec_v_L[2])))
+average_pricing_error_fundvol_10<-fivehundred_pricingerrors_fundvol_10[,rowMeans(.SD)]
+#20 vol
+fivehundred_pricingerrors_fundvol_20<-as.data.table(pricing_error_fun(price_fun(fivehundred_theta_0.3,vec_v_H[3],vec_v_L[3])))
+average_pricing_error_fundvol_20<-fivehundred_pricingerrors_fundvol_20[,rowMeans(.SD)]
+#40 vol
+fivehundred_pricingerrors_fundvol_40<-as.data.table(pricing_error_fun(price_fun(fivehundred_theta_0.3,vec_v_H[4],vec_v_L[4])))
+average_pricing_error_fundvol_40<-fivehundred_pricingerrors_fundvol_40[,rowMeans(.SD)]
+#100 vol
+fivehundred_pricingerrors_fundvol_100<-as.data.table(pricing_error_fun(price_fun(fivehundred_theta_0.3,vec_v_H[5],vec_v_L[5])))
+average_pricing_error_fundvol_100<-fivehundred_pricingerrors_fundvol_100[,rowMeans(.SD)]
+
+#fivehundred_pricingerrors_0.3<-as.data.table(pricing_error_fun(price_fun(fivehundred_theta_0.3,v_H,v_L)))
+#average_pricing_errors_500_0.3<-fivehundred_pricingerrors_0.3[,rowMeans(.SD)]
+
+
+plotter(average_theta_500_0.3)+ggtitle("Figure 7a")+theme(legend.position ="none")+ylab("Theta does not vary with k")+xlab("t")#only one theta, does not depend on vH vL
+
+plotter(cbind("2"=average_pricing_error_fundvol_4,"5"=average_pricing_error_fundvol_10,"10"=average_pricing_error_fundvol_20,"20"=average_pricing_error_fundvol_40,"50"=average_pricing_error_fundvol_100))+ggtitle("Figure 7b")+theme(legend.title = element_blank())+ylab("PE for varying k")+xlab("t")
+
+```
+Beyond Figure 7
+```{r}
+#a) Now we examine price discovery instead of mu, not price
+#baseline is still pi @ 0.3
+#Let's arbitrarilty fix gamma at $10 per share
+fixed_gamma<-10
+#binding the thetas and trading sessions
+feeder_fivehundred_trades_thetas_0.3<-cbind(master_dt[,501:1000],fivehundred_theta_0.3)
+#Let's now build the "s(dt)" function
+s_dt_500_fun<-function(trade_session,thetas,pi,high,low){# a function for computing small 's' for 500 sims from 500 thetas and 500 sessions (all of length 100, one obs lost)
+  mat_500_sessions_0.3<-as.matrix(trade_session)
+  mat_500_thetas_0.3<-as.matrix(thetas)
+  mat_out_sdt<-matrix(nrow=nrow(mat_500_sessions_0.3),ncol=ncol(mat_500_sessions_0.3))#storing matrix
+  for (j in 1:length(trade_session)){
+  for (i in 2:length(trade_session[[1]])){
+    if(mat_500_sessions_0.3[i,j]==-1){
+      mat_out_sdt[i,j]<-((pi*mat_500_thetas_0.3[i-1,j]*(1-mat_500_thetas_0.3[i-1,j]))/((pi*(1-mat_500_thetas_0.3[i-1,j]))+.5*(1-pi)))*(high-low)
+    }
+    else if (mat_500_sessions_0.3[i,j]==1){
+      mat_out_sdt[i,j]<-((pi*mat_500_thetas_0.3[i-1,j]*(1-mat_500_thetas_0.3[i-1,j]))/((pi*mat_500_thetas_0.3[i-1,j])+.5*(1-pi)))*(high-low)
+    }
+  }
+}
+  return(as.data.table(mat_out_sdt))
+}
+
+fivehundred_dt_0.3<-s_dt_500_fun(master_dt[,501:1000],fivehundred_theta_0.3,pi,v_H,v_L)
+sdt_dt<-fivehundred_dt_0.3*master_dt[,501:1000]#this is what the function for mu_t uses
+
+#Function for the efficient price time series (not equal to p anymore due to OPCs)
+mu_t_fun<-function(s_dt_vec){
+  mu_out<-c(mu_0)
+  for (i in 2:length(s_dt_vec)){
+    mu_out[i]<-mu_out[i-1]+s_dt_vec[i]
+  }
+  return(mu_out)
+}
+
+eff_price_ts_500<-as.data.table(lapply(sdt_dt,mu_t_fun))
+
+
+#trade_price_ts_500<-as.data.table(lapply(fivehundred_theta_0.3,price_fun,v_H,v_L)) NOT NEEDED! pt diff with OPCs!!
+
+#Function for new price series (with fixed OPCs) NEEDED, pt with OPCs.
+trade_price_OPC_ts_500<-eff_price_ts_500+fixed_gamma*master_dt[,501:1000]
+
+#recall, if function gives set of vectors as output, you can coerce it to data table by wrapping the call to the function in "as.data.table" so only need to focus on iterating over a function for a vector
+
+#plotter(cbind(trade_price_ts_500[,rowMeans(.SD)],eff_price_ts_500[,rowMeans(.SD)]))+ggtitle("Figure a)")+theme(legend.title = element_blank()) #OPC costs do not alter the speed of discovery to vH (as expected)
+
+plotter(cbind("with OPC"=trade_price_OPC_ts_500[,rowMeans(.SD)]-mean(trade_price_OPC_ts_500[,rowMeans(.SD)]-eff_price_ts_500[,rowMeans(.SD)]),"efficient price"=eff_price_ts_500[,rowMeans(.SD)]))+ggtitle("Figure a)")+theme(legend.title = element_blank())+ylab("Price convergence")+xlab("t") #OPC costs do not alter the speed of discovery to vH (as expected)
+
+
+#b) 
+#volatility over average of all trades
+sd(trade_price_OPC_ts_500[,rowMeans(.SD)])
+#w opc
+sd(eff_price_ts_500[,rowMeans(.SD)])
+#c) 
+#volatility over first and second half of trades
+#overall
+sd(trade_price_OPC_ts_500[,rowMeans(.SD)])#w opc
+sd(eff_price_ts_500[,rowMeans(.SD)])
+sd(trade_price_OPC_ts_500[,rowMeans(.SD)])/sum(sd(trade_price_OPC_ts_500[,rowMeans(.SD)]),sd(eff_price_ts_500[,rowMeans(.SD)]))
+sd(eff_price_ts_500[,rowMeans(.SD)])/sum(sd(trade_price_OPC_ts_500[,rowMeans(.SD)]),sd(eff_price_ts_500[,rowMeans(.SD)]))
+
+#first half
+sd(trade_price_OPC_ts_500[,rowMeans(.SD)][1:50])#w opc
+sd(eff_price_ts_500[,rowMeans(.SD)][1:50])
+sd(trade_price_OPC_ts_500[,rowMeans(.SD)][1:50])/sum(sd(trade_price_OPC_ts_500[,rowMeans(.SD)][1:50]),sd(eff_price_ts_500[,rowMeans(.SD)][1:50]))
+sd(eff_price_ts_500[,rowMeans(.SD)][1:50])/sum(sd(trade_price_OPC_ts_500[,rowMeans(.SD)][1:50]),sd(eff_price_ts_500[,rowMeans(.SD)][1:50]))
+
+#second half
+sd(trade_price_OPC_ts_500[,rowMeans(.SD)][51:100])#w opc
+sd(eff_price_ts_500[,rowMeans(.SD)][51:100])
+sd(trade_price_OPC_ts_500[,rowMeans(.SD)][51:100])/sum(sd(trade_price_OPC_ts_500[,rowMeans(.SD)][51:100]),sd(eff_price_ts_500[,rowMeans(.SD)][51:100]))
+sd(eff_price_ts_500[,rowMeans(.SD)][51:100])/sum(sd(trade_price_OPC_ts_500[,rowMeans(.SD)][51:100]),sd(eff_price_ts_500[,rowMeans(.SD)][51:100]))
+
+```
+
+# Problem Set 3
+
+
+```{r}
+library(data.table)
+library(ggplot2)
+library(reshape2)
+library(kableExtra)
+library(knitr)
+
+```
+
+
+## FIRST TASK
+
+Upload the file Stock1LOBLEV.txt – for a description see the first assignment. You do not need to control for type of trader. Therefore, just add up columns 5 and 7 (displayed depth), and 6 and 8 (hidden depth).
+
+```{r}
+Stock1LOBLEV <- fread("C:/Users/Jt_an/Google Drive/GSE - Finance/2 trim_/HFT/Assignments/THIRD/Stock1LOBLEV.txt")
+Stock1LOBLEV<- Stock1LOBLEV[,.(date,time, sign, quote,displayed = nHFTd + HFTd, hidden= HFTh + nHFTh, dist)]
+```
+
+
+Filters: Clean the data by dropping observations in which the spread is crossed (best ask < best
+bid), or the book is one‐sided (there is no best ask and/or there is no best bid).
+
+```{r}
+Stock1LOBLEV[dist==0 & hidden+displayed==0,] #Book isn't one-sided at best quotes
+```
+
+```{r}
+bids<-Stock1LOBLEV[dist==0 & sign==1,.(date,time,quote)]
+asks<-Stock1LOBLEV[dist==0 & sign==-1,.(date,time,quote)]
+
+sum((asks$quote-bids$quote)<0) #There is one observation (#7472) in which the spread is crossed at best quotes
+
+asks[which((asks$quote-bids$quote)<0)]
+bids[which((asks$quote-bids$quote)<0)] #Date of the observation: 80919 time :39060
+
+Stock1LOBLEV<- Stock1LOBLEV[!(date==80919 & time ==39060),] # Drop observations
+```
+
+
+### How much of the LOB is hidden?
+Consider three different levels of the LOB: “At” the best quotes (1st level), “Near” the best quotes (2nd to 5th level), and “Behind” the best quotes (6th to 10th level). For each day, each (1‐minute) snapshot of the LOB, and each of level of the book, compute the percentage of the book that is hidden.
+
+```{r}
+ask.h.overall <- Stock1LOBLEV[sign<0,.(ask.h.overall = sum(hidden)/(sum(displayed)+sum(hidden))), by="date,time"] #ask overall
+ask.h.overall<-ask.h.overall[,.(dailymean = mean(ask.h.overall)), by="date"]
+
+ask.h.at <- Stock1LOBLEV[sign==-1,.(ask.h.at = sum(hidden)/(sum(displayed)+sum(hidden))), by="date,time"] #ask at
+ask.h.at<-ask.h.at[,.(dailymean = mean(ask.h.at)), by="date"]
+
+ask.h.near <- Stock1LOBLEV[sign<=-2 & sign >=-5,.(ask.h.near = sum(hidden)/(sum(displayed)+sum(hidden))), by="date,time"] #ask near
+ask.h.near<-ask.h.near[,.(dailymean = mean(ask.h.near)), by="date"]
+
+ask.h.behind <- Stock1LOBLEV[sign<=-6,.(ask.h.behind = sum(hidden)/(sum(displayed)+sum(hidden))), by="date,time"] #ask behind
+ask.h.behind<-ask.h.behind[,.(dailymean = mean(ask.h.behind)), by="date"]
+
+bid.h.overall <- Stock1LOBLEV[sign>0,.(bid.h.overall = sum(hidden)/(sum(displayed)+sum(hidden))), by="date,time"] #bid overall
+bid.h.overall<-bid.h.overall[,.(dailymean = mean(bid.h.overall)), by="date"]
+
+bid.h.at <- Stock1LOBLEV[sign==1,.(bid.h.at = sum(hidden)/(sum(displayed)+sum(hidden))), by="date,time"] #bid at
+bid.h.at<-bid.h.at[,.(dailymean = mean(bid.h.at)), by="date"]
+
+bid.h.near <- Stock1LOBLEV[sign>=2 & sign <=5,.(bid.h.near = sum(hidden)/(sum(displayed)+sum(hidden))), by="date,time"] #bid near
+bid.h.near<-bid.h.near[,.(dailymean = mean(bid.h.near)), by="date"]
+
+bid.h.behind <- Stock1LOBLEV[sign>=6,.(bid.h.behind = sum(hidden)/(sum(displayed)+sum(hidden))), by="date,time"] #bid behind
+bid.h.behind<-bid.h.behind[,.(dailymean = mean(bid.h.behind)), by="date"]
+
+#ask tests
+t.test(ask.h.at$dailymean,ask.h.near$dailymean)
+t.test(ask.h.at$dailymean,ask.h.behind$dailymean)
+
+#bid tests
+t.test(bid.h.at$dailymean,bid.h.near$dailymean)
+t.test(bid.h.at$dailymean,bid.h.behind$dailymean)
+
+means.dt <- matrix(c(mean(ask.h.overall$dailymean),mean(ask.h.at$dailymean),paste0(mean(ask.h.near$dailymean),"***"), paste0(mean(ask.h.behind$dailymean),"***"),mean(bid.h.overall$dailymean),mean(bid.h.at$dailymean),
+paste0(mean(bid.h.near$dailymean),"***"), paste0(mean(bid.h.behind$dailymean),"***")), ncol=4, byrow = T)
+colnames(means.dt) = c("All", "At", "Near", "Far")
+rownames(means.dt) = c("Ask side", "Bid side")
+
+kable(means.dt,caption="Table 1")
+
+```
+
+
+Split the trading session in 30‐minute intervals, and repeat the process above. Plot first the intraday regular patterns in the percentage of hidden depth for the whole LOB (Figure 1). Then, plot the intraday regular patterns but, this time, control for aggressiveness (“At”, “Near”, and “Behind”) (Figure 2).
+
+
+```{r}
+min30<-c()
+for (i in 1:13){
+  min30<-c(min30,rep(i,30))
+}
+
+ask.h.overall <- Stock1LOBLEV[sign<0,.(ask.h.overall = sum(hidden)/(sum(displayed)+sum(hidden))), by="time"] #ask overall
+ask.h.overall<-cbind(ask.h.overall,"30min"=min30[1:length(ask.h.overall$time)])
+ask.h.overall<-ask.h.overall[,.(dailymean = mean(ask.h.overall)), by="30min"]
+
+ask.h.at <- Stock1LOBLEV[sign==-1,.(ask.h.at = sum(hidden)/(sum(displayed)+sum(hidden))), by="time"] #ask at
+ask.h.at<-cbind(ask.h.at,"30min"=min30[1:length(ask.h.at$time)])
+ask.h.at<-ask.h.at[,.(dailymean = mean(ask.h.at)), by="30min"]
+
+ask.h.near <- Stock1LOBLEV[sign<=-2 & sign >=-5,.(ask.h.near = sum(hidden)/(sum(displayed)+sum(hidden))), by="time"] #ask near
+ask.h.near<-cbind(ask.h.near,"30min"=min30[1:length(ask.h.near$time)])
+ask.h.near<-ask.h.near[,.(dailymean = mean(ask.h.near)), by="30min"]
+
+ask.h.behind <- Stock1LOBLEV[sign<=-6,.(ask.h.behind = sum(hidden)/(sum(displayed)+sum(hidden))), by="time"] #ask behind
+ask.h.behind<-cbind(ask.h.behind,"30min"=min30[1:length(ask.h.behind$time)])
+ask.h.behind<-ask.h.behind[,.(dailymean = mean(ask.h.behind)), by="30min"]
+
+bid.h.overall <- Stock1LOBLEV[sign>0,.(bid.h.overall = sum(hidden)/(sum(displayed)+sum(hidden))), by="time"] #bid overall
+bid.h.overall<-cbind(bid.h.overall,"30min"=min30[1:length(bid.h.overall$time)])
+bid.h.overall<-bid.h.overall[,.(dailymean = mean(bid.h.overall)), by="30min"]
+
+bid.h.at <- Stock1LOBLEV[sign==1,.(bid.h.at = sum(hidden)/(sum(displayed)+sum(hidden))), by="time"] #bid at
+bid.h.at<-cbind(bid.h.at,"30min"=min30[1:length(bid.h.at$time)])
+bid.h.at<-bid.h.at[,.(dailymean = mean(bid.h.at)), by="30min"]
+
+bid.h.near <- Stock1LOBLEV[sign>=2 & sign <=5,.(bid.h.near = sum(hidden)/(sum(displayed)+sum(hidden))), by="time"] #bid near
+bid.h.near<-cbind(bid.h.near,"30min"=min30[1:length(bid.h.near$time)])
+bid.h.near<-bid.h.near[,.(dailymean = mean(bid.h.near)), by="30min"]
+
+bid.h.behind <- Stock1LOBLEV[sign>=6,.(bid.h.behind = sum(hidden)/(sum(displayed)+sum(hidden))), by="time"] #bid behind
+bid.h.behind<-cbind(bid.h.behind,"30min"=min30[1:length(bid.h.behind$time)])
+bid.h.behind<-bid.h.behind[,.(dailymean = mean(bid.h.behind)), by="30min"]
+
+overall <- rbind(cbind(ask.h.overall,type="ask"),cbind(bid.h.overall,type="bid"))
+ggplot(overall,aes(`30min`,dailymean, color=type))+
+  geom_line()+
+  ggtitle("Figure 1: Intrady regular patterns")
+
+control <- rbind(cbind(ask.h.at,type="ask_at"),cbind(bid.h.at,type="bid_at"),
+                  cbind(ask.h.near,type="ask_near"),cbind(bid.h.near,type="bid_near"),
+                  cbind(ask.h.behind,type="ask_behind"),cbind(bid.h.behind,type="bid_behind"))
+ggplot(control,aes(`30min`,dailymean, color=type))+
+  geom_line()+
+  ggtitle("Figure 2: Controlled intrady regular patterns")
+```
+
+
+
+
+## SECOND TASK
+### How does liquidity affect the order‐exposure decision?
+
+For each snapshot of the LOB, compute the relative bid‐ask spread (in basis points), and the volume‐weighted relative spread for a trade of size 10,000 shares (see Part II of the course for details). Average liquidity across snapshots to obtain daily estimates. Plot a dispersion diagram of the daily percentage of hidden depth (average ask and bid side statistics) vs. the daily average relative spread (Figure 3.a) and the volume‐weighted relative spread (Figure 3.b). What do you conclude about the likelihood of hiding and liquidity? What theoretical explanation we have seen for hiding orders does agree with your findings?
+
+
+
+
+```{r}
+MP<-Stock1LOBLEV[sign==1 | sign==-1,.(midpoint =sum(quote)/2), by="date,time"]
+Stock1LOBLEV<- Stock1LOBLEV[MP,on = c(date="date",time="time")]
+RS<- Stock1LOBLEV[sign==1,.(RS = abs(midpoint - quote)*2/midpoint), by=.(date,time)]
+Stock1LOBLEV <- Stock1LOBLEV[RS, on=c(date="date",time="time")]
+
+
+Stock1LOBLEV[sign<0,type:="ask"]
+Stock1LOBLEV[sign>0,type:="bid"]
+
+
+Stock1LOBLEV[,vol:=hidden+displayed,by="date,time,type"]
+Stock1LOBLEV[,cumvol:=(sum(vol)),by="date,time,type"]
+
+vol10k<-Stock1LOBLEV[,max(cumvol),by="date,time,type"][,.(min(V1)>10000),by="date,time"][V1==T,.(date,time)]
+
+vol10k<-merge(vol10k,Stock1LOBLEV)
+
+cumfun<- function(x){
+  l<-length(x)
+  cumsum=0
+  volused=0
+  for (i in 1:l) {
+    if((10000-cumsum)-(x[i])<0){volused[i]=10000-cumsum}
+    else{volused[i]=x[i]}
+  cumsum=cumsum+volused[i]
+  }
+  
+  return(volused)}
+
+vol10k[,volused:=cumfun(vol), by="date,time,type"] 
+
+
+vol10k[, VW := sum((volused*quote)/sum(volused)), by="date,time,type"]
+
+VWRS <- vol10k[, .(max(VW),max(midpoint)), by="date,time,type"][,max((diff(V1)/V2)),by="date,time"]
+vol10k <- vol10k[VWRS, on=c(date="date",time="time")]
+
+dailyhidden <- vol10k[, sum(hidden)/sum(hidden+displayed), by="date"]
+dailyrs <- vol10k[,mean(RS),by="date"]
+dailyvwrs <- vol10k[,mean(V1), by="date"]
+
+
+ggplot(,aes(dailyhidden$V1*100,dailyrs$V1*10000))+geom_point()+ geom_smooth(method = "lm")+
+  ggtitle("Figure 3.a")+xlab("daily % hidden depth")+ylab("Daily average relative spread")
+
+ggplot(,aes(dailyhidden$V1*100,dailyvwrs$V1*10000))+geom_point()+ geom_smooth(method = "lm")+
+  ggtitle("Figure 3.b")+xlab("daily % hidden depth")+ylab("Volume-weighted relative spread")
+```
+
+
+
+
+## THIRD TASK
+Let’s now compare the displayed LOB with the hidden LOB. The existence a hidden book can benefit liquidity takers in several ways: (a) they can execute trades at better quotes than displayed (price improvements), (b) trade more than apparently available at the best displayed quotes; (c) as a result of (a), paying lower premiums or discounts for immediacy. You are asked now to evaluate the actual relevance of these potential benefits.
+
+### How often traders can get price improvements because of the presence of hidden volume in the book?
+To answer this question, examine how often either the best displayed ask or bid quote are actually worse than the actual best quote (i.e., accounting for the hidden LOB). Can you quantify how important that improvement could actually be? Provide findings for the whole trading session and for the first 30 minutes of trading separately.
+
+
+
+```{r}
+
+Stock1LOBLEV[displayed==0, bestquote := 100]
+Stock1LOBLEV[displayed>0, bestquote := min(dist), by="date,time,type"]
+Stock1LOBLEV[, bestquote2 := min(bestquote), by="date,time,type"]
+bestquotes <- Stock1LOBLEV[dist==bestquote2,quote,by="date,time,type"]
+Stock1LOBLEV<- Stock1LOBLEV[bestquotes, on=c(date="date",time="time",type="type")]
+
+
+Stock1LOBLEV[,DRS := abs(midpoint - i.quote)*2/midpoint]
+
+
+PrImprAskAll <- round((dim((Stock1LOBLEV[type=="ask" & dist==0 & displayed==0 & hidden>0]))[1])/(dim(Stock1LOBLEV)[1])*100,4)
+PrImprBidAll <- round((dim((Stock1LOBLEV[type=="bid" & dist==0 & displayed==0 & hidden>0]))[1])/(dim(Stock1LOBLEV)[1])*100,4)
+PrImprAsk30 <- round((dim((Stock1LOBLEV[type=="ask" & dist==0 & displayed==0 & hidden>0 & time < 36060]))[1])/(dim(Stock1LOBLEV)[1])*100,4)
+PrImprBid30 <- round((dim((Stock1LOBLEV[type=="bid" & dist==0 & displayed==0 & hidden>0 & time < 36060]))[1])/(dim(Stock1LOBLEV)[1])*100,4)
+
+
+
+```
+
+###How often can they get depth improvements?
+To answer the question, examine how often there is hidden volume at the best quotes, when the displayed quotes equal the best quotes available. Can you quantify how important that depth improvement could actually be? Provide findings for the whole trading session and for the first 30 minutes of trading separately.
+
+
+```{r}
+
+
+DeImpAskAll <- round((dim((Stock1LOBLEV[type=="ask" & dist==0 & displayed>0 & hidden>0]))[1])/(dim(Stock1LOBLEV)[1])*100,4)
+DeImpBidAll <- round((dim((Stock1LOBLEV[type=="bid" & dist==0 & displayed>0 & hidden>0]))[1])/(dim(Stock1LOBLEV)[1])*100,4)
+DeImpAsk30 <- round((dim((Stock1LOBLEV[type=="ask" & dist==0 & displayed>0 & hidden>0 & time < 36060]))[1])/(dim(Stock1LOBLEV)[1])*100,4)
+DeImpBid30 <- round((dim((Stock1LOBLEV[type=="bid" & dist==0 & displayed>0 & hidden>0 & time < 36060]))[1])/(dim(Stock1LOBLEV)[1])*100,4)
+RSall<-round(Stock1LOBLEV[, mean(RS)]*100,4)
+DRSall<-round(Stock1LOBLEV[, mean(DRS)]*100,4)
+
+RS30<-round(Stock1LOBLEV[time < 36060, mean(RS)]*100,4)
+DRS30<-round(Stock1LOBLEV[time < 36060, mean(DRS)]*100,4)
+
+```
+
+
+```{r}
+t.test(Stock1LOBLEV[, (RS)],Stock1LOBLEV[time < 36060, (RS)])
+
+t.test(Stock1LOBLEV[, (DRS)],Stock1LOBLEV[time < 36060, (DRS)])
+```
+
+
+```{r}
+impro.dt <- matrix(c(paste0(RSall,"***"),paste0(DRSall,"***"),PrImprAskAll,DeImpAskAll,PrImprBidAll,DeImpBidAll,
+                     RS30,DRS30,PrImprAsk30,DeImpAsk30,PrImprBid30,DeImpBid30), ncol=6, byrow = T)
+colnames(impro.dt) = c("RS", "DRS", "PrImpAsk", "DeImprAsk","PrImpBid","DeImpBid")
+rownames(impro.dt) = c("All intervals", "First 30 minutes")
+
+kable(impro.dt, caption="Table 2")
+```
+
+
+## FORTH TASK
+
+Evaluate how much depth is hidden per 30‐minute interval at the cross‐sectional level. That is, first compute averages across stocks per 30‐minute interval. Average the statistics for the ask and bid sides of the book and plot the estimated regular pattern in Figure 4.a (for the whole LOB), and Figure 4.b (controlling for aggressiveness). What do you observe?
+
+Next investigate in market capitalization matters in the order exposure decision. That is, you are now aimed to answer the question of whether traders hide more often when providing liquidity for large or for small caps. In order to do that, you must group the 120 stocks in three subsamples based on market capitalization: large, medium, and small caps. You need the file CapGroup.txt you already used in the First Assignment. Split the data in HidStatSample.txt into three pieces based on market capitalization, and compute average statistics per each 30‐minute interval. Repeat the exercise in Figure 4 but this time for the three subsamples of stocks, and plot the resulting intraday regular patterns in Figure 5 (no need to control for aggressiveness). What do you conclude? What theoretical framework reviewed during the course is consistent with your findings?
+
+```{r}
+plotter<-function(data){data<-as.data.table(data)
+  dat<-as.data.table(cbind(id=1:length(data[[1]]),data))
+  datmelt<-melt(id.vars="id",dat)
+ ggplot(datmelt, 
+         aes(x = id, y = value, color=variable))+theme_bw()+
+    xlab("X LABEL")+ylab("Y LABEL")+geom_line()+
+    ggtitle("TITLE")
+}
+```
+
+
+```{r}
+scnd_dt<-fread("C:/Users/Jt_an/Google Drive/GSE - Finance/2 trim_/HFT/Assignments/THIRD/HidStatSample.txt")
+capgroup_dt<-fread("C:/Users/Jt_an/Google Drive/GSE - Finance/2 trim_/HFT/Assignments/THIRD/CapGroup.txt")#Recall 1 is large and 3 is small
+setnames(capgroup_dt,"Stock","stock")
+scnd_dt<-merge(scnd_dt,capgroup_dt,by="stock")
+#third_dt<-fread("DailyHidVol.txt")
+seq_aux<-seq(34260,57660,1800)
+for (i in 1:length(seq_aux)){
+scnd_dt[time>=seq_aux[i]&time<=seq_aux[i+1],interval:=i]}
+
+#Average hidden orders, ask and bid sides by 30 min interval
+fig4a<-scnd_dt[,.(Hidden_ov_ask=mean(HLOBAsk),Hidden_ov_bid=mean(HLOBBid)),by=interval]
+
+plotter(fig4a[,2:3]*100)+ggtitle("Figure 4a - Hidden depth by interval")+theme(legend.title = element_blank())+xlab("30 min interval")+ylab("%")+ scale_x_continuous(breaks = seq(1, 13, by = 1))
+#Average hidden orders, ask and bid sides by 30 min interval and agressiveness
+fig4b<-scnd_dt[,.(Hidden_at_ask=mean(HAtAsk),Hidden_at_bid=mean(HAtBid),Hidden_near_ask=mean(HNearAsk),Hidden_near_bid=mean(HNearBid),Hidden_behind_ask=mean(HFarAsk),Hidden_behind_bid=mean(HFarBid)),by=interval]
+plotter(fig4b[,2:length(fig4b)]*100)+ggtitle("Figure 4b - Hidden depth by interval and agressiveness")+theme(legend.title = element_blank())+xlab("30 min interval")+ylab("%")+ scale_x_continuous(breaks = seq(1, 13, by = 1))
+
+#Average hidden orders, ask and bid sides by 30 min interval and cap size
+fig5<-scnd_dt[,.(Hidden_ov_ask=mean(HLOBAsk),Hidden_ov_bid=mean(HLOBBid)),by=c("interval","Capgroup")]
+plotter(cbind(Hidden_Ask_Large=fig5[Capgroup==1]$Hidden_ov_ask*100,Hidden_Bid_Large=fig5[Capgroup==1]$Hidden_ov_bid*100,Hidden_Ask_Mid=fig5[Capgroup==2]$Hidden_ov_ask*100,Hidden_Bid_Mid=fig5[Capgroup==2]$Hidden_ov_bid*100,Hidden_Ask_Small=fig5[Capgroup==3]$Hidden_ov_ask*100,Hidden_Bid_Small=fig5[Capgroup==3]$Hidden_ov_bid*100))+theme(legend.title = element_blank())+ylab("%")+xlab("30 min interval")+ggtitle("Figure 5 - Hidden depth by interval and Market Cap")+ scale_x_continuous(breaks = seq(1, 13, by = 1))
+
+```
+
+## FIFTH TASK
+Finally, we study whether the likelihood of hiding (and therefore market opacity) varies with price volatility. As a preliminary step, I have generated daily average statistics on dark liquidity for the whole LOB (“All”), depth at the best quotes (“At”), depth near the best quotes (“Near”), and depth far from the best quotes (“Behind”) for each of the 120 stocks in the sample. Those statistics can be found in the file DailyHidVol.txt.
+Now, using the file NasdaqVolat.txt (First Assignment), select the 10 days with highest and lowest volatility levels per stock. Using the selected days per stock, you are asked to generate a table containing median differences in hidden volume use between high volatility and low volatility days, and statistical tests (Wilcoxon’s non‐parametric rank‐sum tests) on the significance of those differences.
+As a complementary test, you are asked to run a simple regression model. You must follow the same steps as in the First Assignment
+
+```{r}
+dt5<-merge(fread("C:/Users/Jt_an/Google Drive/GSE - Finance/2 trim_/HFT/Assignments/THIRD/NasdaqVolat.txt"),fread("C:/Users/Jt_an/Google Drive/GSE - Finance/2 trim_/HFT/Assignments/THIRD/DailyHidVol.txt"),by=c("date","stock"))
+
+maxvoldates<-dt5[order(stock,-volat),head(date,10),by=stock]#high vol days
+setnames(maxvoldates,"V1","date")
+maxvoldates<-maxvoldates[,volatility:="high"]
+
+minvoldates<-dt5[order(stock,volat),head(date,10),by=stock]#low vol days
+setnames(minvoldates,"V1","date")
+minvoldates<-minvoldates[,volatility:="low"]
+
+dt_byvol<-rbind(merge(dt5,maxvoldates,by=c("date","stock")),merge(dt5,minvoldates,by=c("date","stock")))
+
+dt_byvol<-dt_byvol[order(stock)]
+
+#Now we compute medians and recover p-values from Wilcox tests of equality of medians
+#All book
+#median(dt_byvol[volatility=="high"]$hbook-dt_byvol[volatility=="low"]$hbook)
+wilcox.test(dt_byvol[volatility=="high"]$hbook,dt_byvol[volatility=="low"]$hbook)[[3]]#significant difference at 1%
+#At
+#median(dt_byvol[volatility=="high"]$hat-dt_byvol[volatility=="low"]$hat)
+wilcox.test(dt_byvol[volatility=="high"]$hat,dt_byvol[volatility=="low"]$hat)[[3]]#significant difference at 1%
+#Near
+#median(dt_byvol[volatility=="high"]$hnear-dt_byvol[volatility=="low"]$hnear)
+wilcox.test(dt_byvol[volatility=="high"]$hnear,dt_byvol[volatility=="low"]$hnear)[[3]]#significant difference at 1%
+#Far
+#median(dt_byvol[volatility=="high"]$hfar-dt_byvol[volatility=="low"]$hfar)
+wilcox.test(dt_byvol[volatility=="high"]$hfar,dt_byvol[volatility=="low"]$hfar)[[3]]# NO significant difference at 1%
+
+table_3<-matrix(nrow=1,ncol=4)
+rownames(table_3)<-"High - Low volatility"
+colnames(table_3)<-c("All","At","Near","Far")
+
+table_3[1]<-paste0(round(median((dt_byvol[volatility=="high"]$hbook-dt_byvol[volatility=="low"]$hbook)*100),2),"%","***")
+table_3[2]<-paste0(round(median((dt_byvol[volatility=="high"]$hat-dt_byvol[volatility=="low"]$hat)*100),1),"%","***")
+table_3[3]<-paste0(round(median((dt_byvol[volatility=="high"]$hnear-dt_byvol[volatility=="low"]$hnear)*100),1),"%","***")
+table_3[4]<-paste0(round(median((dt_byvol[volatility=="high"]$hfar-dt_byvol[volatility=="low"]$hfar)*100),1),"%")
+kable(table_3, caption="Table 3")
+#Now we run some regressions of hidden volume on volatility by aggressiveness
+
+dt_byvol[volatility=="high",highvol:=1]
+dt_byvol[volatility=="low",highvol:=0]
+dt_byvol[volatility=="low"]
+#OLS_all<-summary(lm(daily_median_5dbest~vol_1H_0L,data=filtered_liqlob))
+
+table4_OLS_all<-summary(lm(hbook~highvol,data=dt_byvol))
+table4_OLS_at<-summary(lm(hat~highvol,data=dt_byvol))
+table4_OLS_near<-summary(lm(hnear~highvol,data=dt_byvol))
+table4_OLS_far<-summary(lm(hfar~highvol,data=dt_byvol))
+
+table4_OLS_all$coefficients[,1]
+table4_OLS_at$coefficients[,1]
+table4_OLS_near$coefficients[,1]
+table4_OLS_far$coefficients[,1]
+#Except for far, all betas are significant at under the 1% level
+
+```
+
+
+
+
+
+
+
+
+
