@@ -1,10 +1,6 @@
 ---
-title: "Index"
-knit: (function(input_file, encoding) {
-  out_dir <- 'docs';
-  rmarkdown::render(input_file,
- encoding=encoding,
- output_file=file.path(dirname(input_file), out_dir, 'index.html'))})
+title: "index"
+output: html_document
 ---
 
 Welcome to my problem sets solution webpage. I have grouped the problem set by courses

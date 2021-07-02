@@ -1,0 +1,12 @@
+name: "Finance Problem Sets"
+output_dir: "docs"
+navbar:
+  title: "Finance Problem Sets"
+  left:
+    - text: "Home"
+      href: index.html
+    - text: "Speed and Distance"
+      href: asset pricing.html
+output:
+  html_document:
+    theme: cosmo
