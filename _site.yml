@@ -13,6 +13,8 @@ navbar:
       href: hft.html
     - text: "Machine Learning For Finance"
       href: ml_fin.html
+    - text: "Macro Finance"
+      href: macro_fin.html
 output:
   html_document:
     theme: cosmo

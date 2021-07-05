@@ -1,0 +1,316 @@
+---
+title: "Macro-Finance"
+author: "Joan Antoni Segui"
+output:
+  html_document:
+    toc: true
+    toc_depth: 1
+knit: (function(input_file, encoding) {
+  out_dir <- 'docs';
+  rmarkdown::render(input_file,
+ encoding=encoding,
+ output_file=file.path(dirname(input_file), out_dir, 'macro_fin.html'))})
+---
+
+# Problem Set 1
+
+
+```{r }
+library(haven)
+library(data.table)
+library(ggplot2)
+library(reshape2)
+JSTdatasetR4 <- as.data.table(read_dta("C:/Users/Jt_an/Google Drive/GSE - Finance/3 trim_/Macro Finance/Homework/JSTdatasetR4.dta"))
+```
+
+```{r }
+unique(JSTdatasetR4$country)
+```
+
+```{r }
+JSTdatasetR4[ country=="Spain" & crisisJST==1, ]
+```
+
+```{r warning=FALSE}
+data = JSTdatasetR4[country=="Spain" & year >= 1972 & year <=1982, .(year, housing_capgain,eq_capgain, inflation= (diff(cpi)/cpi))]
+
+real_eq_capgains = (1+data$eq_capgain)/(1+data$inflation)-1
+real_housing_capgains = (1+data$housing_capgain)/(1+data$inflation)-1
+
+index_real_eq = 1
+index_real_housing= 1
+for (i in 2:11){
+  index_real_eq[i]=index_real_eq[i-1]*(1+ real_eq_capgains[i])
+  index_real_housing[i]=index_real_housing[i-1]*(1+ real_housing_capgains[i])
+}
+
+
+
+data_plot=melt(as.data.table(cbind(year=data$year,"Real Stock Price" = index_real_eq,"Real House Price"=index_real_housing)),id.vars = "year")
+
+
+ggplot(data_plot, aes(year,value,colour=variable))+
+  geom_line()+
+  labs(title = "1977 Spanish Crisis ", x = "Year", y = "Index. 1977=1", color = "")+
+  geom_vline(xintercept =1977)+
+  scale_x_continuous(breaks=data_plot$year)+ 
+  annotate("text", x = 1978.5, y = 1, label = "Start of the Crisis")
+
+```
+
+
+# Problem Set 2
+
+
+
+```{r }
+library(data.table)
+library(ggplot2)
+library(kableExtra)
+
+
+
+```
+
+
+```{r }
+SP500<- as.data.table(read.csv("C:/Users/Jt_an/Google Drive/GSE - Finance/3 trim_/Macro Finance/Homework/HW2/^GSPC.csv"))
+ICSA <- read.csv("C:/Users/Jt_an/Google Drive/GSE - Finance/3 trim_/Macro Finance/Homework/HW2/ICSA.csv")
+
+
+SP500 <- SP500[,Date := as.Date(Date)]
+
+
+SP500 <- SP500[,weekly:=(Adj.Close-shift(Adj.Close,5))/shift(Adj.Close,5)][,monthly:=(Adj.Close-shift(Adj.Close,22))/shift(Adj.Close,22)]
+
+SP_weekly<-head(SP500[order(weekly)],20)
+SP_monthly<-head(SP500[order(monthly)],20)
+
+SP_monthly[,id:=paste0(year(Date),"-",month(Date))]
+list<-SP_monthly[,unique(id)]
+
+
+tablemonthly<- cbind(SP_monthly[1:12, .(return=head(monthly,1)), by=id],claims=c("NA","NA",10667000,"NA","NA"))
+
+tableweekly<- cbind(SP_weekly[Date == "1929-10-29" | Date == "1987-10-19" | Date == "1932-09-14" | Date == "1932-10-10" | Date == "1933-07-21",
+          .(Date, return=weekly)],claims= c("NA",301000,"NA","NA","NA"))
+```
+
+```{r }
+k1<-kable(tablemonthly, caption = "Top-5 monthly falls + initial claims in that month")
+kable_styling(k1, latex_options = "hold_position")
+k2<-kable(tableweekly, caption = "Top-5 weekly falls + initial claims in that week")
+kable_styling(k2, latex_options = "hold_position")
+
+
+```
+
+# Problem Set 4
+
+
+```{r }
+library(data.table)
+library(haven)
+library(kableExtra)
+```
+
+
+
+```{r }
+JSTdatasetR4 <- as.data.table(read_dta("C:/Users/Jt_an/Google Drive/GSE - Finance/3 trim_/Macro Finance/Homework/JSTdatasetR4.dta"))
+```
+
+
+```{r }
+
+JSTdatasetR4<-JSTdatasetR4[country=="Spain" & between(year,1900,2015 ) | country=="Switzerland" & between(year,1900,2015 ), .(year, country,inflation= ((cpi-shift(cpi))/shift(cpi)),log_rconpc = log(rconpc)-shift(log(rconpc)),eq_tr, cpi, bill_rate, rconpc), by="country"][!is.na(inflation)][,real_er := (1+eq_tr)/(1+inflation)-1][,real_sr := (1+bill_rate)/(1+inflation)-1][,equity_p:=real_er-real_sr]
+
+JSTdatasetR4<- na.omit(JSTdatasetR4)
+
+```
+
+```{r}
+table<-JSTdatasetR4[, .(risk_premium.lvl=mean(equity_p),risk_premium.sd=sd(equity_p),safe_rate.lvl=mean(real_sr), safe_rate.sd=sd(real_sr),corr_risky_cons=cor(log_rconpc,real_er), rconsg.lvl=mean(log_rconpc),rconsg.sd=sd(log_rconpc)) ,by="country"]
+
+
+colnames(table) <- c("Country", "RPremium Level", "RPremium Sd", "Safe Rate Level", "Safe Rate Sd", "Corr(Risky Return, Consumption Growth","Consumption Growth Level","Consumption Growth Sd")
+```
+
+
+```{r }
+
+k1<-kable(table, caption = "Spain and Switzerland comparison")
+kable_styling(k1, latex_options = c("hold_position", "scale_down"))
+```
+
+
+# Problem Set 5
+
+
+```{r }
+library(data.table)
+library(haven)
+library(kableExtra)
+library(xts)
+JSTdatasetR4 <- as.data.table(read_dta("C:/Users/Jt_an/Google Drive/GSE - Finance/3 trim_/Macro Finance/Homework/JSTdatasetR4.dta"))
+```
+
+
+```{r }
+
+
+p_ind<-1
+esp<-JSTdatasetR4[country=="Spain" & !is.na(eq_capgain), .(year,eq_capgain,eq_dp,cpi,eq_tr,inflation= (cpi-shift(cpi))/shift(cpi))][,real_er:= (1+eq_tr)/(1+inflation)-1]
+
+
+for (i in 1:(length(esp$year)-1)) {
+  p_ind[i+1]<-p_ind[i]*(1+esp$eq_capgain[i+1])
+}
+
+esp<-cbind(esp,p_ind)
+
+esp<-esp[,div_ind:=p_ind*eq_dp][,real_div_ind:=div_ind/cpi][,real_div_g := (real_div_ind-shift(real_div_ind)/shift(real_div_ind))][!is.na(real_div_g)][,lag.dp:=shift(eq_dp)][,log.r:=(log(1+real_er))][,log.g:=log(1+real_div_g)][,log.dp:=log(lag.dp)][!is.infinite(log.r) & !is.infinite(log.g) & !is.infinite(log.dp),]
+```
+
+
+
+```{r }
+reg_r.dp <- lm(real_er ~ lag.dp, data=esp)
+reg_g.dp <- lm(real_div_g ~ lag.dp, data=esp)
+
+logreg_r.dp <- lm(log.r ~ log.dp, data=esp)
+logreg_g.dp <- lm(log.g ~ log.dp, data=esp)
+```
+
+
+
+```{r }
+ret_coef <- c(summary(reg_r.dp)$coefficients[2,1:4],summary(reg_r.dp)$r.squared)
+g_coef <- c(summary(reg_g.dp)$coefficients[2,1:4],summary(reg_g.dp)$r.squared)
+logret_coef <- c(summary(logreg_r.dp)$coefficients[2,1:4],summary(logreg_r.dp)$r.squared)
+logg_coef <- c(summary(logreg_g.dp)$coefficients[2,1:4],summary(logreg_g.dp)$r.squared)
+
+table<- rbind(ret_coef ,g_coef,logret_coef,logg_coef)
+colnames(table)=c("Estimate","Std. Error","t stat","p-value", "R-squared")
+rownames(table)=c("returns","dividend growth","log returns","log dividend growth")
+k1<-kable(table, caption = "Spain Forecasting Regressions")
+kable_styling(k1, latex_options = c("hold_position"))
+```
+
+Spanish returns seems predictable, the equity dividend yield coefficient is statistically significant at the .05 level. While for dividend growth it is not statistically significant. The coefficients are positive, so a higher equity dividend yield predicts a higher return and a higher dividend growth.
+
+The same for the log regressions, for returns is significant at the 5% level,and not for dividend growth. A 1% increase in the equity dividend yield, increases returns by 0.15% and by 0.22% the dividend growth (now is significant at the 0.1 level).  
+
+# Problem Set 6
+
+
+
+```{r }
+rm(list=ls())
+library(haven)
+library(data.table)
+library(plm)
+library(kableExtra)
+```
+
+
+
+```{r }
+
+data <- as.data.table(read_dta("C:/Users/Jt_an/Google Drive/GSE - Finance/3 trim_/Macro Finance/Homework/JSTdatasetR4.dta"))
+data <- data[year>=1870 & year<=2015, CumGDPGrowth_t:=(rgdppc-shift(rgdppc))/shift(rgdppc),by="country"][,CumGDPGrowth_t1 := (shift(rgdppc,type="lead")-shift(rgdppc))/shift(rgdppc),by="country"][,CumGDPGrowth_t2 := (shift(rgdppc,n=2,type="lead")-shift(rgdppc))/shift(rgdppc)][,gdpGrowth := (shift(rgdppc,n=1)-shift(rgdppc,n = 2))/shift(rgdppc,n = 2), by="country"][,inflation := (shift(cpi)-shift(cpi,n = 2))/shift(cpi,n = 2),by="country"][,LTinterestRate := shift(ltrate),by="country"][,STinterestRate := shift(stir),by="country"][,CAtoGDP := shift(ca)/shift(gdp),by="country"][,invToGDP := shift(iy),by="country"][,rcred := tloans/cpi,by="country"][,lag_grcred := (shift(rcred)-shift(rcred,n = 2))/shift(rcred,n=2),by="country"][,bigCrisis := ifelse(crisisJST==1 & lag_grcred>0.02,1,0),by="country"]
+```
+
+
+```{r }
+
+regression1 <- plm(CumGDPGrowth_t ~ crisisJST + gdpGrowth + inflation + LTinterestRate + STinterestRate + CAtoGDP + invToGDP- 1, model="within",index="country",data=data, na.action=na.omit)
+
+
+regression2 <- plm(CumGDPGrowth_t1 ~ crisisJST + gdpGrowth + inflation + LTinterestRate + STinterestRate + CAtoGDP + invToGDP - 1, model="within",index="country",data=data, na.action=na.omit)
+
+
+regression3 <- plm(CumGDPGrowth_t2 ~ crisisJST + gdpGrowth + inflation + LTinterestRate + STinterestRate + CAtoGDP + invToGDP -1, model="within",index="country",data=data, na.action=na.omit)
+
+```
+
+
+```{r }
+table1<-rbind(summary(regression1)$coefficients[1,],
+summary(regression2)$coefficients[1,],
+summary(regression3)$coefficients[1,])
+
+rownames(table1)<-c("theta_0","theta_1","theta_2")
+
+k1<-kable(table1, caption = "Crisis at different horizons")
+kable_styling(k1, latex_options = "hold_position")
+```
+
+
+```{r }
+
+regression4 <- plm(CumGDPGrowth_t ~ bigCrisis + gdpGrowth + inflation + LTinterestRate + STinterestRate + CAtoGDP + invToGDP  - 1, model="within",index="country",data=data, na.action=na.omit)
+
+
+regression5 <- plm(CumGDPGrowth_t1 ~ bigCrisis + gdpGrowth + inflation + LTinterestRate + STinterestRate + CAtoGDP + invToGDP - 1, model="within",index="country",data=data, na.action=na.omit)
+
+regression6 <- plm(CumGDPGrowth_t2 ~ bigCrisis + gdpGrowth + inflation + LTinterestRate + STinterestRate + CAtoGDP + invToGDP - 1, model="within",index="country",data=data, na.action=na.omit)
+
+
+```
+
+
+
+```{r }
+table2<-rbind(summary(regression4)$coefficients[1,],
+summary(regression5)$coefficients[1,],
+summary(regression6)$coefficients[1,])
+
+rownames(table2)<-c("theta_0","theta_1","theta_2")
+
+k2<-kable(table2, caption = "Crisis with real credit growth at different horizons")
+kable_styling(k2, latex_options = "hold_position")
+```
+
+
+Financial crisis are costly and persistent. Cumulative real GDP growth at t-1 to t is on average 1.74 ppts below the trend. From t-1 to t+1 is below 4.75 ppts. From t-1 to t+2 is below 4.9. If we define crisis as in the first scenario with the additional constraint the lagged credit growth being bigger than the mean (+0.02), we get similar results.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
