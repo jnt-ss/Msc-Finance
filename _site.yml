@@ -7,7 +7,7 @@ navbar:
       href: index.html
     - text: "Asset Pricing"
       href: Asset-Pricing-Problem-Sets.html
-    - text: "Pricing Financial Derivatives I & II"
+    - text: "Pricing Financial Derivatives"
       href: Financial-Derivatives.html
     - text: "High Frequency Trading"
       href: hft.html
@@ -15,6 +15,8 @@ navbar:
       href: ml_fin.html
     - text: "Macro Finance"
       href: macro_fin.html
+    - text: "Advanced Option Pricing"
+      href: options.html
 output:
   html_document:
     theme: cosmo

@@ -1,0 +1,165 @@
+---
+title: "VIX under SABR model"
+author: "Joan Antoni Segui Serra"
+output:
+  html_document:
+    toc: true
+    toc_depth: 1
+knit: (function(input_file, encoding) {
+  out_dir <- 'docs';
+  rmarkdown::render(input_file,
+ encoding=encoding,
+ output_file=file.path(dirname(input_file), out_dir, 'options.html'))})
+---
+
+
+```{r include=FALSE}
+library(kableExtra)
+```
+
+
+# Introduction
+
+In this project I will simulate a SABR model and analyze how hedging using VIX performs. First, I will simulate prices for calls and puts of the SABR model using conditional Monte Carlo. With these vanillas I will compute the VIX. Finally, I will analyze if the number of vanillas used for the VIX computations and the correlation between volatility and asset prices do have an effect on its performance. I will use $\rho=[-0.6,-0.4,-0.2,0,0.2,0.4,0.6]$ and number of vanillas [14,16,18,20]. 
+
+I will assume that the stock follows a stochastic volatility model of the type,
+
+$$dS_t=rS_tdt+\sigma_tS_t\bigg(\rho dW_t+\sqrt{1-\rho^2}dB_t\bigg)$$
+Under the SABR model, the volatility follows the process,
+
+$$d\sigma_t=\nu\sigma_tdW_t$$
+
+Applyin Euler-Maruyama discretization to log S(t) gives the stochastic recursion for the volatily,
+
+$$\sigma_i=\sigma_0exp(\nu W_i-\frac{1}{2}\nu ^2t_i)$$
+I will compute this volatility using the same Monte Carlo that will be used to compute SABR prices. The volatility resulting from the Monte Carlo will be the benchmark for the different VIX (VIX computed with different parameters are the result of the same Monte Carlo). 
+
+
+The VIX is defined as follows, 
+
+$$VIX_T^2=E_T\int_T^{T+30days}\sigma_s^2ds$$
+
+
+$$VIX_T^2=E_T\bigg( \int_0^{S_t}\frac{d^2f}{dK^2}P_KdK+\int_{S_t}^{\infty}\frac{d^2f}{dK^2}C_KdK\bigg)$$
+
+# Simulation of VIX
+
+I will reproduce VIX as explained in CBOE White Paper (http://www.cboe.com/micro/vix/vixwhite.pdf). I need prices of a series of European call options $C_i$ with fixed maturity and strike prices $K_i$, also I need prices of European put options $P_i$ with the same maturity date T and exercises prices $K_i$. 
+
+Volatility is computed as follows,
+
+$$\sigma^2=\frac{2}{T}\sum_{i=0}^n\frac{\Delta K_i}{K_i^2}e^{rT}M_i-\frac{1}{T}(\frac{F}{K^*}-1)^2$$
+
+The distance between strikes is defined, 
+
+$$\Delta K_i= \left\{\begin{array}{ll}
+K_1-K_0,      & i=0 \\
+\frac{1}{2}(K_{i+1}-K_{i-1}), & i=1,...,n-1 \\
+K_n-K_{n-1},     & i=n
+\end{array}
+\right. $$
+
+
+Out-of-the-money option premia,
+
+$$M_i= \left\{\begin{array}{ll}
+P_i,      & K_i<K^* \\
+\frac{1}{2}(P_i+C_i), & K_i=K^* \\
+C_i,     & K_i>K^*
+\end{array}
+\right. $$
+
+The first strike below the forward index level, F,
+
+$$K^*=max\{K_i<F\}$$
+
+The forward index level is extracted from put-call parity,
+
+$$F=K_j +e^{rT}|C_j-P_j|$$
+
+
+and finally,
+
+$$j=min\{|C_j-P_j|\}$$
+
+
+# Simulation calls and puts under SABR model using Conditional Monte Carlo
+
+$$(S_t-K)_+=BS(T,S_T,K,v_T)$$ 
+
+$$v_T=\sqrt{\frac{1}{T-t}\int_t^T\sigma_s^2ds}$$
+
+
+Where $BS(t,x,K,\sigma)$ denotes the Black-Scholes price when time to maturity is $T-t$, the asset price is $x$, the strike is $K$ and the volatility is $\sigma$
+
+$$E(S_T-K)_+=E(BS(T,S_T,K,v_T))$$
+ Using conditional expectations,
+ 
+$$E(BS(T,S_T,K,v_T))=E[E(BS(T,S_T,K,v_T)|W)]$$
+
+
+$$S_T=S_0exp\bigg(-\int_0^T\sigma_s^2ds+\int_0^T\sigma_s(\rho dW_s+\sqrt{1-\rho^2}dBs\bigg)$$
+
+$$S_0exp\bigg(-\rho^2\int_0^T\sigma_s^2ds+\int_0^T\rho\sigma_s dW_s\bigg)\\*exp\bigg(-1(1-\rho^2)\int_0^T\sigma_s^2ds+\sqrt{1-\rho^2}\int_0^T\sigma_sdBs\bigg)$$
+
+The stock, when conditioned to W, is a process with a deterministic volatility given by $\sqrt{(1-\rho^2)}\sigma$ and initial asset price $S_0^`=S_0exp\bigg(-\rho^2\int_0^T\sigma_s^2ds+\rho\int_0^T\sigma_s dW_s\bigg)$
+
+Then, 
+
+$$E(BS(T,S_T,K,v_T)|W)=BS(0,S_0^`,K,\sqrt{(1-\rho)^2}v_0)$$
+
+Which implies,
+
+$$E(S_T-K)_+=E(BS(T,S_T,K,v_T))=E(S_T-K)_+=E[BS(0,S_0^`,K,\sqrt{(1-\rho^2)}v_0)]$$
+
+# Results
+
+
+VIX performance is computed against the resulting volatility from the Monte Carlo simulation of the SABR volatility proccess ($\sigma=18.61497622$).
+
+```{r echo=FALSE}
+
+
+table_vix<- rbind(c(17.38528183, 16.14083629, 15.29087064, 14.848127  , 14.79073726,
+        15.31823512, 16.11740468),
+              c(18.25044933, 17.12895438, 16.37820521, 16.00662294, 15.98443548,
+        16.50178925, 17.23609709),
+              c(18.74446232, 17.73579102, 17.07980015, 16.78060371, 16.80160393,
+        17.32490097, 18.01944292),
+              c( 19.02817122, 18.11560984, 17.54372481, 17.31170704, 17.37653517,
+        17.91292364, 18.58188844))
+
+rownames(table_vix)<-c("n vanilla=14","n vanilla=16","n vanilla=18","n vanilla=20")
+colnames(table_vix)<-c("rho=-0.6","rho-0.4","rho=-0.2","rho=0","rho=0.2","rho=0.4","rho=0.6")
+kabletable_vix<-kable(table_vix,caption="VIX table. Volatility = 18.61497622")
+kable_styling(kabletable_vix,latex_options = "HOLD_position")
+
+table_error<- rbind(c(-6.60594123, -13.29112596, -17.85715729, -20.23558437,
+        -20.54388318, -17.71015481, -13.417001),
+              c(-1.95824529,  -7.98293711, -12.01597565, -14.01212258,
+        -14.131314  , -11.35207991,  -7.40736447),
+              c(0.69560172,  -4.72299936,  -8.24699455,  -9.8542834 ,
+         -9.74146982,  -6.93030835,  -3.19921604),
+              c( 2.21969123,  -2.68260556,  -5.7547826 ,  -7.00118641,
+         -6.65292846,  -3.77143957,  -0.1777482 ))
+
+rownames(table_error)<-c("n vanilla=14","n vanilla=16","n vanilla=18","n vanilla=20")
+colnames(table_error)<-c("rho=-0.6","rho-0.4","rho=-0.2","rho=0","rho=0.2","rho=0.4","rho=0.6")
+kabletable_error<-kable(table_error,caption="Percentage Errors table. Volatility = 18.61497622")
+kable_styling(kabletable_error,latex_options = "HOLD_position")
+```
+
+
+![Error surface](C:/Users/Jt_an/Google Drive/GSE - Finance/3 trim_/Options/Project/errors.png)
+
+
+
+
+VIX fails to perfectly hedge. The number of vanillas used to compute VIX and $\rho$ affect the error. As expected, the less vanillas are used, the highest is the error. The stronger is the correlation between asset prices and volatility, the best VIX perform. 
+
+
+
+
+
+
+
