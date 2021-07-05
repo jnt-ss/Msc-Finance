@@ -7,7 +7,8 @@ output: html_document
 
 
 
-Welcome to my problem sets solution and projects webpage of the master of finance at GSE. I have grouped the problem sets and projects by courses
+Welcome to my problem sets solutions and projects webpage of the master in finance at GSE. 
+I have grouped the problem sets and projects by courses.
 
 
 
