@@ -1,15 +1,24 @@
 ---
-title: "Home"
 output: html_document
 ---
 
 
 
+![](https://www.barcelonagse.eu/sites/default/files/styles/bgse_image_content_image/public/news/gselogo-square640.jpg){width=20%}
 
 
 Welcome to my problem sets solutions and projects webpage of the master in finance at GSE. 
 I have grouped the problem sets and projects by courses.
 
 
+[Take me to the homepage](https://jnt-ss.github.io/)
 
-![](https://www.barcelonagse.eu/sites/default/files/styles/bgse_image_content_image/public/news/gselogo-square640.jpg){width=20%}
+
+
+
+
+
+
+
+
+
