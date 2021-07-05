@@ -1,0 +1,1762 @@
+---
+title: "Machine Learning for Finance"
+author: "Joan Antoni Seguí"
+output:
+  html_document:
+    toc: true
+    toc_depth: 1
+knit: (function(input_file, encoding) {
+  out_dir <- 'docs';
+  rmarkdown::render(input_file,
+ encoding=encoding,
+ output_file=file.path(dirname(input_file), out_dir, 'ml_fin.html'))})
+---
+
+# Problem Set 1
+
+## 1. Show that the EWMA-based variance $\sigma^2_{ewma}$ can be obtained from the following recursion: $\sigma^2_{ewma}(t)=\lambda\sigma^2_{ewma}(t-1)+(1-\lambda)r^2_{t-1}$:
+ 
+ Plug in $\sigma^2_{ewma}(t-1)=\lambda\sigma^2_{ewma}(t-2)+(1-\lambda)r^2_{t-2}$ into the previous formula, we get: 
+ 
+ $$\sigma^2_{ewma}(t)=\lambda(\lambda\sigma^2_{ewma}(t-2)+(1-\lambda)r^2_{t-2})+(1-\lambda)r^2_{t-1} $$
+ 
+  $$\sigma^2_{ewma}(t)=\lambda^2\sigma^2_{ewma}(t-2)+(1-\lambda)(\lambda r^2_{t-2}+r^2_{t-1}) $$
+  
+  
+  
+  Doing the same recursion, i.e. plug in $\sigma^2_{ewma}(t-2)=\lambda\sigma^2_{ewma}(t-3)+(1-\lambda)r^2_{t-3}$ into the previous formula, we get: 
+  
+  $$\sigma^2_{ewma}(t)=\lambda^2(\lambda\sigma^2_{ewma}(t-3)+(1-\lambda)r^2_{t-3})+(1-\lambda)(\lambda r^2_{t-2}+r^2_{t-1}) $$
+
+  
+  $$\sigma^2_{ewma}(t)=\lambda^3\sigma^2_{ewma}(t-3)+(1-\lambda)(\lambda^2r_{t-3}+\lambda r^2_{t-2}+r^2_{t-1}) $$
+  
+  
+  
+  As t increases (and $\lambda<1$), this recursive expression can be expressed as:
+  
+  
+  $$\sigma^2_t=(1-\lambda)\sum_{k=1}^{m}\lambda^{k-1}r^2_{t-k}$$
+  
+Using EMA with $\lambda=0.94$ for the returns of $IBEX35$ from 1999-01-04 to 2020-04-29 we get a volatility for 2020-04-29 of 0.029. If we use the regular standard deviation, we get a volatility of 0.015. It is reasonable to think that nowdays volatility is higher than the static volatility using all the sample because of COVID-19, which is increasing uncertainty in the financial markets.
+
+```{r include=FALSE}
+library(xts); library(quantmod); library(plyr)
+library("MSBVAR"); library("vars"); library(TTR)
+library(kernlab) ##for GP
+library(caret) ##for some data handling functions
+library(MASS)
+library(Metrics)
+library(reshape2)
+library(ggplot2)
+library(kableExtra)
+library(gridExtra)
+```
+
+
+```{r include=FALSE}
+data.env <- readRDS("C:/Users/Jt_an/Google Drive/GSE - Finance/3 trim_/Machine Learning/HomeWorks/HW1/WorldMarkts99_20.RDS")
+markets <- ls(data.env)
+ibex <- get("IBEX",data.env)
+ibex_ret <- periodReturn(Ad(ibex$IBEX.Adjusted),period="daily",type = "log")
+ibex_ret[is.na(ibex_ret)]<-0 
+
+dI="1991-01-04"; dF="2020-04-29"
+Retp <- ibex_ret[paste(dI,"/",dF,sep=""),]
+
+vol_ema<-sqrt(EMA(Retp^2,n=1, ratio=0.06)) #ratio = 1 - gamma
+tail(vol_ema,1)
+sd(Retp)
+```
+
+  
+## 2. Give a proof of the fact that the best estimator for $X_{t+h}$ with information set $Z=(X_{t},X_{t-1},...,X_{t-p})$ is a linear regression on $Z$, when all variables follow a normal distribution.
+
+An estimation $\hat{X}_{t+h}$ of $X_{t+h}$ is viewed as a function of $Z$, $F(Z)=\hat{X}_{t+h}$. The best estimator of $F$ is the one that minimizes $E(X-F(Z))^2$.
+
+$$E[(X_{t+h}-F(Z))^2]=E[(X_{t+h}-E(X_{t+h}|Z)+E(X_{t+h}|Z)-F(Z))^2] $$
+$$=E[(X_{t+h}-E(X_{t+h}|Z))^2+2(X_{t+h}-E(X_{t+h}|Z))(E(X_{t+h}|Z)-F(Z))+(E(X_{t+h}|Z)-F(Z))^2] $$
+
+$$=E[E((X_{t+h}-E(X_{t+h}|Z))^2|Z)]+E[2(E(X_{t+h}|Z)-F(Z))E((X_{t+h}-E(X_{t+h}|Z))|Z)]+E[(E(X_{t+h}|Z)-F(Z))^2] $$
+  
+$$=E[Var(X_{t+h}|Z)]+E[(E(X_{t+h}|Z)-F(Z))^2]$$
+  
+  
+which is minimized when $F(Z)=E(X_{t+h}|Z)$
+  
+  
+The conditional distribution of X given Z is $E(X|Z)=\mu_x+\rho\frac{\sigma_x}{\sigma_z}(Z-\mu_z)$, and we know that this is the best predictor.
+  
+Note that this is a linear regression $F(Z)=\alpha +\beta Z$ where $\beta=\rho\frac{\sigma_x}{\sigma_z}$ and $\alpha=\mu_x+\rho\frac{\sigma_X}{\sigma_z}\mu_z$
+  
+## 3. 
+
+
+```{r include=FALSE}
+
+### Get data from disc
+data.env <- readRDS("C:/Users/Jt_an/Google Drive/GSE - Finance/3 trim_/Machine Learning/HomeWorks/HW1/WorldMarkts99_20.RDS")
+markets <- ls(data.env)
+
+### loop through to get Ad.Close, compute weekly return and merge all stocks and treat as xts objects
+returns <- xts()
+per<- "weekly" ##period of sampling
+for(i in seq_along(markets)) {
+  sym <- markets[i]
+  returns <- merge(returns, 
+                  periodReturn(Ad(get(sym,envir=data.env)),period=per,type = "log"))
+}
+
+returns<-na.locf(returns)
+colnames(returns) <- paste(markets,".ret",sep="")
+
+##Extract the epoch to analysis
+dI="2018-01-01"; dF="2019-12-31"
+Retp <- returns[paste(dI,"/",dF,sep=""),]
+
+
+caus_fun <- function(x,y,h) {
+gt<-grangertest(x,y,order=h)
+
+pv<-gt$`Pr(>F)`[2]
+
+if (pv<0.05) {
+  return(1)
+}
+else return(0)
+}
+
+matrix_ret_week<-as.data.frame(matrix(,nrow = dim(Retp)[2], ncol=dim(Retp)[2]))
+rownames(matrix_ret_week)<-colnames(Retp)
+colnames(matrix_ret_week)<-colnames(Retp)
+
+for (h in 1:4) {
+
+  for (namecol in colnames(matrix_ret_week)) {
+  for (namerow in colnames(matrix_ret_week)) {
+    if (namerow!=namecol) {
+      if (h==1) {
+        matrix_ret_week[namerow,namecol]=caus_fun(Retp[,namerow],Retp[,namecol],h)
+      }
+      else matrix_ret_week[namerow,namecol]=paste0(matrix_ret_week[namerow,namecol],caus_fun(Retp[,namerow],Retp[,namecol],h))
+      
+    }
+    else matrix_ret_week[namerow,namecol]="- - - "
+  }
+}
+
+}
+colnames(matrix_ret_week)<-c("India","Brasil","France","Germany","USA","China","Spain","Indonesia","Mexico","Japan","Taiwan","VIX","VLIC")
+rownames(matrix_ret_week)<-c("India","Brasil","France","Germany","USA","China","Spain","Indonesia","Mexico","Japan","Taiwan","VIX","VLIC")
+
+
+```
+  
+
+
+```{r include=FALSE}
+### loop through to get Ad.Close, compute monthly return and merge all stocks and treat as xts objects
+returns <- xts()
+per<- "monthly" ##period of sampling
+for(i in seq_along(markets)) {
+  sym <- markets[i]
+  returns <- merge(returns, 
+                  periodReturn(Ad(get(sym,envir=data.env)),period=per,type = "log"))
+}
+
+returns<-na.locf(returns)
+colnames(returns) <- paste(markets,".ret",sep="")
+
+##Extract the epoch to analysis
+dI="2018-01-01"; dF="2019-12-31"
+Retp <- returns[paste(dI,"/",dF,sep=""),]
+
+caus_fun <- function(x,y,h) {
+gt<-grangertest(x,y,order=h)
+
+pv<-gt$`Pr(>F)`[2]
+
+if (pv<0.05) {
+  return(1)
+}
+else return(0)
+}
+
+matrix_ret_monthly<-as.data.frame(matrix(,nrow = dim(Retp)[2], ncol=dim(Retp)[2]))
+rownames(matrix_ret_monthly)<-colnames(Retp)
+colnames(matrix_ret_monthly)<-colnames(Retp)
+
+for (h in 1:4) {
+
+  for (namecol in colnames(matrix_ret_monthly)) {
+  for (namerow in colnames(matrix_ret_monthly)) {
+    if (namerow!=namecol) {
+      if (h==1) {
+        matrix_ret_monthly[namerow,namecol]=caus_fun(Retp[,namerow],Retp[,namecol],h)
+      }
+      else matrix_ret_monthly[namerow,namecol]=paste0(matrix_ret_monthly[namerow,namecol],caus_fun(Retp[,namerow],Retp[,namecol],h))
+      
+    }
+    else matrix_ret_monthly[namerow,namecol]="- - - "
+  }
+}
+
+}
+colnames(matrix_ret_monthly)<-c("India","Brasil","France","Germany","USA","China","Spain","Indonesia","Mexico","Japan","Taiwan","VIX","VLIC")
+rownames(matrix_ret_monthly)<-c("India","Brasil","France","Germany","USA","China","Spain","Indonesia","Mexico","Japan","Taiwan","VIX","VLIC")
+
+```
+
+
+
+```{r include=FALSE}
+### loop through to get Ad.Close, compute monthly return^2, vol_EMA and merge all stocks and treat as xts objects
+returns <- xts()
+per<- "monthly" ##period of sampling
+for(i in seq_along(markets)) {
+  sym <- markets[i]
+  returns <- merge(returns, 
+                  periodReturn(Ad(get(sym,envir=data.env)),period=per,type = "log"))
+}
+
+returns<-na.locf(returns)
+colnames(returns) <- paste(markets,".ret",sep="")
+
+##Extract the epoch to analysis
+dI="2018-01-01"; dF="2019-12-31"
+Retp <- returns[paste(dI,"/",dF,sep=""),]
+
+vol_ema<-apply(Retp[,-c(12)],2,function(x) sqrt(EMA(x^2,n=1, ratio=0.06)))
+colnames(vol_ema) <- paste(markets[-12],".vol",sep="")
+
+vol_ema <- cbind(vol_ema,Retp$VIX.ret)
+
+caus_fun <- function(x,y,h) {
+gt<-grangertest(x,y,order=h)
+
+pv<-gt$`Pr(>F)`[2]
+
+if (pv<0.05) {
+  return(1)
+}
+else return(0)
+}
+
+matrix_vol_monthly<-as.data.frame(matrix(,nrow = dim(vol_ema)[2], ncol=dim(vol_ema)[2]))
+rownames(matrix_vol_monthly)<-colnames(vol_ema)
+colnames(matrix_vol_monthly)<-colnames(vol_ema)
+
+for (h in 1:4) {
+
+  for (namecol in colnames(matrix_vol_monthly)) {
+  for (namerow in colnames(matrix_vol_monthly)) {
+    if (namerow!=namecol) {
+      if (h==1) {
+        matrix_vol_monthly[namerow,namecol]=caus_fun(vol_ema[,namerow],vol_ema[,namecol],h)
+      }
+      else matrix_vol_monthly[namerow,namecol]=paste0(matrix_vol_monthly[namerow,namecol],caus_fun(vol_ema[,namerow],vol_ema[,namecol],h))
+      
+    }
+    else matrix_vol_monthly[namerow,namecol]="- - - "
+  }
+}
+
+}
+colnames(matrix_vol_monthly)<-c("India","Brasil","France","Germany","USA","China","Spain","Indonesia","Mexico","Japan","Taiwan","VLIC","VIX")
+rownames(matrix_vol_monthly)<-c("India","Brasil","France","Germany","USA","China","Spain","Indonesia","Mexico","Japan","Taiwan","VLIC","VIX")
+```
+
+
+
+```{r include=FALSE}
+### loop through to get Ad.Close, compute weekly return^2, vol_EMA and merge all stocks and treat as xts objects
+returns <- xts()
+per<- "weekly" ##period of sampling
+for(i in seq_along(markets)) {
+  sym <- markets[i]
+  returns <- merge(returns, 
+                  periodReturn(Ad(get(sym,envir=data.env)),period=per,type = "log"))
+}
+
+returns<-na.locf(returns)
+
+
+colnames(returns) <- paste(markets,".ret",sep="")
+
+##Extract the epoch to analysis
+dI="2018-01-01"; dF="2019-12-31"
+Retp <- returns[paste(dI,"/",dF,sep=""),]
+
+vol_ema<-apply(Retp[,-c(12)],2,function(x) sqrt(EMA(x^2,n=1, ratio=0.06)))
+colnames(vol_ema) <- paste(markets[-12],".vol",sep="")
+
+vol_ema <- cbind(vol_ema,Retp$VIX.ret)
+
+caus_fun <- function(x,y,h) {
+gt<-grangertest(x,y,order=h)
+
+pv<-gt$`Pr(>F)`[2]
+
+if (pv<0.05) {
+  return(1)
+}
+else return(0)
+}
+
+matrix_vol_weekly<-as.data.frame(matrix(,nrow = dim(vol_ema)[2], ncol=dim(vol_ema)[2]))
+rownames(matrix_vol_weekly)<-colnames(vol_ema)
+colnames(matrix_vol_weekly)<-colnames(vol_ema)
+
+for (h in 1:4) {
+
+  for (namecol in colnames(matrix_vol_weekly)) {
+  for (namerow in colnames(matrix_vol_weekly)) {
+    if (namerow!=namecol) {
+      if (h==1) {
+        matrix_vol_weekly[namerow,namecol]=caus_fun(vol_ema[,namerow],vol_ema[,namecol],h)
+      }
+      else matrix_vol_weekly[namerow,namecol]=paste0(matrix_vol_weekly[namerow,namecol],caus_fun(vol_ema[,namerow],vol_ema[,namecol],h))
+      
+    }
+    else matrix_vol_weekly[namerow,namecol]="- - - "
+  }
+}
+
+}
+colnames(matrix_vol_weekly)<-c("India","Brasil","France","Germany","USA","China","Spain","Indonesia","Mexico","Japan","Taiwan","VLIC","VIX")
+rownames(matrix_vol_weekly)<-c("India","Brasil","France","Germany","USA","China","Spain","Indonesia","Mexico","Japan","Taiwan","VLIC","VIX")
+```
+
+
+
+```{r echo=FALSE}
+k1<-kable(matrix_ret_week, caption = "Weekly causal returns 2018-01-01 / 2019-12-31")
+kable_styling(k1, latex_options = c("hold_position", "scale_down"))
+
+k2<-kable(matrix_vol_weekly, caption = "Weekly volatility spill-over 2018-01-01 / 2019-12-31")
+kable_styling(k2, latex_options = c("hold_position", "scale_down"))
+
+k3<-kable(matrix_ret_monthly, caption = "Monthly causal returns 2018-01-01 / 2019-12-31")
+kable_styling(k3, latex_options = c("hold_position", "scale_down"))
+
+k4<-kable(matrix_vol_monthly, caption = "Monthly volatility spill-over 2018-01-01 / 2019-12-31")
+kable_styling(k4, latex_options = c("hold_position", "scale_down"))
+```
+
+
+## 4. 
+
+
+```{r include=FALSE}
+
+set.seed(1996)
+### I.Exploring kernels: Drawing some priors
+
+##Define a kernel(single pairs)
+MyKer1 <- function(x,y) {
+  2*exp(-((x-y)^2)/2*(1.5)^2)
+}
+
+MyKer2 <- function(x,y) {
+  2*exp((-(x-y)^2)/(2*(0.35)^2))
+}
+
+MyKer3 <- function(x,y) {
+  2*exp(((sin(pi*(x-y)/3))^2)/(-2*0.5^2))
+}
+
+MyKer4 <- function(x,y) {
+  2*exp((-(x-y)^2)/(2*(1.5)^2))+1.5*x*y
+}
+
+
+# Cov matrix for kernel:
+SigmaK <- function(X1,X2,ker) {
+  Sigma <- matrix(0, length(X1),length(X2))
+  
+  for (i in 1:length(X1)) {
+    for (j in 1:length(X2)) {
+      Sigma[i,j] <- ker(X1[i],X2[j])  
+    }
+  }
+  return(Sigma)
+}
+
+
+# Define the points at which we want to define the functions
+x.star <- seq(-5,5,len=50)
+
+n.samples <- 5 # we need to sample 5 different latent functions for each GP
+
+# The colours that we are going to use for the 5 different functions:
+colours <- c('#34B6C6', '#146E7A', '#5CECFF', '#7A3907', '#C77334')
+
+# Calculating the covariance matrix for kernels
+sigma1 <- SigmaK(x.star,x.star,MyKer1)
+sigma2 <- SigmaK(x.star,x.star,MyKer2)
+sigma3 <- SigmaK(x.star,x.star,MyKer3)
+sigma4 <- SigmaK(x.star,x.star,MyKer4)
+
+values1 <- matrix(0,length(x.star), n.samples)
+values2 <- matrix(0,length(x.star), n.samples)
+values3 <- matrix(0,length(x.star), n.samples)
+values4 <- matrix(0,length(x.star), n.samples)
+
+for (i in 1:n.samples) {
+  # Each column represents a sample from a multivariate normal distribution
+  # with zero mean and covariance sigma
+  values1[,i] <- mvrnorm(1, rep(0, length(x.star)), sigma1)
+}
+for (i in 1:n.samples) {
+  # Each column represents a sample from a multivariate normal distribution
+  # with zero mean and covariance sigma
+  values2[,i] <- mvrnorm(1, rep(0, length(x.star)), sigma2)
+}
+for (i in 1:n.samples) {
+  # Each column represents a sample from a multivariate normal distribution
+  # with zero mean and covariance sigma
+  values3[,i] <- mvrnorm(1, rep(0, length(x.star)), sigma3)
+}
+for (i in 1:n.samples) {
+  # Each column represents a sample from a multivariate normal distribution
+  # with zero mean and covariance sigma
+  values4[,i] <- mvrnorm(1, rep(0, length(x.star)), sigma4)
+}
+
+values1 <- cbind(x=x.star,as.data.frame(values1))
+values1 <- melt(values1,id="x")
+colnames(values1) <- c('x', 'Function','value')
+levels(values1$Function) <- c('f1','f2','f3','f4','f5')
+
+values2 <- cbind(x=x.star,as.data.frame(values2))
+values2 <- melt(values2,id="x")
+colnames(values2) <- c('x', 'Function','value')
+levels(values2$Function) <- c('f1','f2','f3','f4','f5')
+
+values3 <- cbind(x=x.star,as.data.frame(values3))
+values3 <- melt(values3,id="x")
+colnames(values3) <- c('x', 'Function','value')
+levels(values3$Function) <- c('f1','f2','f3','f4','f5')
+
+values4 <- cbind(x=x.star,as.data.frame(values4))
+values4 <- melt(values4,id="x")
+colnames(values4) <- c('x', 'Function','value')
+levels(values4$Function) <- c('f1','f2','f3','f4','f5')
+
+
+#dev.off() # Used for resetting the graphics state and avoiding ggplot mess-up
+
+
+
+# Plotting the result for kernels
+fig1 <- ggplot(values1,aes(x=x,y=value)) +
+  geom_line(aes(group=Function,colour=Function)) +
+  annotate("rect", xmin=-Inf, xmax=Inf, ymin=-2, ymax=2, fill="#474644", alpha = 0.2) +
+  theme_bw() +
+  scale_y_continuous(name="f(x)") +
+  scale_color_manual(values = colours) +
+  xlab("x") + 
+  ggtitle('MyKer1') +
+  theme(plot.title = element_text(hjust = 0.5), panel.border = element_blank())
+
+fig2 <- ggplot(values2,aes(x=x,y=value)) +
+  geom_line(aes(group=Function,colour=Function)) +
+  annotate("rect", xmin=-Inf, xmax=Inf, ymin=-2, ymax=2, fill="#474644", alpha = 0.2) +
+  theme_bw() +
+  scale_y_continuous(name="f(x)") +
+  scale_color_manual(values = colours) +
+  xlab("x") + 
+  ggtitle('MyKer2') +
+  theme(plot.title = element_text(hjust = 0.5), panel.border = element_blank())
+
+fig3 <- ggplot(values3,aes(x=x,y=value)) +
+  geom_line(aes(group=Function,colour=Function)) +
+  annotate("rect", xmin=-Inf, xmax=Inf, ymin=-2, ymax=2, fill="#474644", alpha = 0.2) +
+  theme_bw() +
+  scale_y_continuous(name="f(x)") +
+  scale_color_manual(values = colours) +
+  xlab("x") + 
+  ggtitle('MyKer3 ') +
+  theme(plot.title = element_text(hjust = 0.5), panel.border = element_blank())
+
+fig4 <- ggplot(values4,aes(x=x,y=value)) +
+  geom_line(aes(group=Function,colour=Function)) +
+  annotate("rect", xmin=-Inf, xmax=Inf, ymin=-2, ymax=2, fill="#474644", alpha = 0.2) +
+  theme_bw() +
+  scale_y_continuous(name="f(x)") +
+  scale_color_manual(values = colours) +
+  xlab("x") + 
+  ggtitle('MyKer4') +
+  theme(plot.title = element_text(hjust = 0.5), panel.border = element_blank())
+
+
+```
+
+
+
+```{r echo=FALSE}
+grid.arrange(fig1, fig2,fig3,fig4, nrow = 2)
+
+```
+
+
+The first two kernels are exponentiated quadratic kernels. We can see how the kernel 1 is smoother. That is because it has a higher lengthscale, so it has lower variations over a longer range. Kernel 1, in contrast, have higher variations over a certain range.
+
+Kernel 3 is a periodic kernel, with a fairly low lenghtscale, so it has a higher variation within a repetition.
+
+Kernel 4 is a combination of a linear kernel and an exponentiated quadratic. It is the unique kernel which is not stationary, we can see how the value of the kernel does not only depend on the distance between the two points, but on their absolute value.
+
+
+## 5
+
+```{r include=FALSE}
+sp500 = as.xts(read.zoo('C:/Users/Jt_an/Google Drive/GSE - Finance/3 trim_/Machine Learning/data/GoyalMonthly2005.csv',sep=',',header=TRUE, format='%Y-%m-%d'))
+names(sp500)
+mt=sp500['1927/2005']
+
+
+##compute log equity premium (GSPCep), 
+## log returns of SP500 (logret)
+logret =diff(log(mt$Index))
+IndexDiv = mt$Index + mt$D12
+#logretdiv <- log(IndexDiv) - log(mt$Index)
+logretdiv =diff(log(IndexDiv))
+logRfree = log(mt$Rfree + 1)
+GSPCep <- logretdiv - logRfree
+names(GSPCep) = "GSPCep"
+
+# dividend-price ratio (dp)
+dp <- log(mt$D12) - log(mt$Index)
+# earnings to price
+ep <- log(mt$E12) - log(mt$Index)
+## dividend yield 
+dy <- log(mt$D12) - log(lag(mt$Index,1))
+
+names(ep) = "ep"
+names(dp) = "dp"
+names(dy) = "dy"
+
+Z = merge(GSPCep,ep,dp,dy)
+
+##frequency of sampling
+tau=1 #data is monthly. Try tau=12 (year), tau=3 (quarterly)
+
+##1. Target and Feature as plain Price
+target <- Z$GSPCep
+
+##Model Inputs:
+##Define matrix of features (each column is a feature)
+#Features: lags 1,2,3 with (or w/o) PE10 and lags 1,2
+feat = merge(na.trim(lag(target,1)),na.trim(lag(target,2)),na.trim(lag(target,3)),
+             dp,na.trim(lag(dp,1)),na.trim(lag(dp,2)),
+             dy,na.trim(lag(dy,1)),na.trim(lag(dy,2)),
+             ep,na.trim(lag(ep,1)),na.trim(lag(ep,2)),
+             all=FALSE)
+
+dataset = merge(feat,target,all=FALSE)
+colnames(dataset) = c("lag.1", "lag.2", "lag.3",
+                      "dp","dp.1","dp.2",
+                      "dy","dy.1","dy.2",
+                      "ep","ep.1","ep.2",
+                      "TARGET")
+
+
+
+##Divide data into training (75%) and testing (25%). Use caret methods
+## caret randomizes data 
+index = 1:nrow(dataset)
+trainindex= createDataPartition(index,p=0.75,list=FALSE)
+##process class sets as data frames
+training = as.data.frame(dataset[trainindex,])
+rownames(training) = NULL
+testing = as.data.frame(dataset[-trainindex,])
+rownames(testing) = NULL
+
+
+MyKer1 <- function(x,y) {
+  2*exp((sum((x-y)^2))/(-2*1.5^2))
+}
+
+MyKer2 <- function(x,y) {
+  2*exp(sum(abs(x-y))/(-2*1.5^2)) + 1.5*sum(x*y)
+}
+
+class(MyKer1) <- 'kernel'
+class(MyKer2) <- 'kernel'
+
+
+gpfit1 = gausspr(TARGET~., data=training,
+                type="regression",
+                #kernel="tanhdot", 
+                #kernel= "rbfdot", #"vanilladot",
+                kernel= MyKer1,  
+                #kpar = list(sigma = 0.4), #list of kernel hyper-parameters for rbf
+                ## if you make it constant value then does not make mle estimation of sigma
+                #kpar=list(scale=2,offset=2), ##for tanh
+                var = 0.003 # the initial noise variance: 0.001 default min value
+)
+
+gpfit2 = gausspr(TARGET~., data=training,
+                type="regression",
+                #kernel="tanhdot", 
+                #kernel= "rbfdot", #"vanilladot",
+                kernel= MyKer2,  
+                #kpar = list(sigma = 0.4), #list of kernel hyper-parameters for rbf
+                ## if you make it constant value then does not make mle estimation of sigma
+                #kpar=list(scale=2,offset=2), ##for tanh
+                var = 0.003 # the initial noise variance: 0.001 default min value
+)
+
+gpfit3 = gausspr(TARGET~., data=training,
+                type="regression",
+                #kernel="tanhdot", 
+                #kernel= "rbfdot", #"vanilladot",
+                kernel= "vanilladot",  
+                #kpar = list(sigma = 0.4), #list of kernel hyper-parameters for rbf
+                ## if you make it constant value then does not make mle estimation of sigma
+                #kpar=list(scale=2,offset=2), ##for tanh
+                var = 0.003 # the initial noise variance: 0.001 default min value
+)
+
+gpfit4 = gausspr(TARGET~., data=training,
+                type="regression",
+                #kernel="tanhdot", 
+                #kernel= "rbfdot", #"vanilladot",
+                kernel= "rbfdot",  
+                #kpar = list(sigma = 0.4), #list of kernel hyper-parameters for rbf
+                ## if you make it constant value then does not make mle estimation of sigma
+                #kpar=list(scale=2,offset=2), ##for tanh
+                var = 0.003 # the initial noise variance: 0.001 default min value
+)
+
+
+##build predictor (predict on test data)
+GPpredict1 <- predict(gpfit1,testing)
+GPpredict2 <- predict(gpfit2,testing)
+GPpredict3 <- predict(gpfit3,testing)
+GPpredict4 <- predict(gpfit4,testing)
+###EVALUATION Functs
+##1. Evaluation for TARGET prediction.  
+##sum of squares errors function
+ssr <-function(actual,pred){
+  sum((actual - pred)^2)
+}
+##Normalize Residual Mean Square Error (NRMSE) funct
+nrmse <- function(actual,pred){
+  sqrt(ssr(actual,pred)/((length(actual)-1)*var(actual)))
+} 
+##percentage of outperforming direct sample mean (sample expected value)
+pcorrect<- function(actual,pred){
+  (1-nrmse(actual,pred))*100
+}
+### Evaluation Results
+actualTS=testing[,ncol(testing)] ##the true series to predict
+predicTS1 = GPpredict1
+predicTS2 = GPpredict2
+predicTS3 = GPpredict3
+predicTS4 = GPpredict4
+
+res1 <- list("GP"=pcorrect(actualTS,predicTS1))
+res1<-unlist(res1)
+res2 <- list("GP"=pcorrect(actualTS,predicTS2))
+res2<-unlist(res2)
+res3 <- list("GP"=pcorrect(actualTS,predicTS3))
+res3<-unlist(res3)
+res4 <- list("GP"=pcorrect(actualTS,predicTS4))
+res4<-unlist(res4)
+
+```
+
+
+$$kernel1 =2*exp((\sum((x-y)^2))/(-2*1.5^2)) $$
+$$kernel2 = 2*exp(\sum(abs(x-y))/(-2*1.5^2)) + 1.5*\sum(x*y)$$
+
+The regression used is $GSPCep_t = GSPCep_{t-1} +GSPCep_{t-2}+GSPCep_{t-3} + dp_t + dp_{t-1} +dp_{t-2}+dy_t+dy_{t-1}+dy_{t-2}+ep_t+ep_{t-1}+ep_{t-2}$
+
+```{r echo=FALSE}
+##For visual comparison
+par(mfrow=c(2,2),mar = c(2, 2, 2, 2))
+
+plot(actualTS,t='l',col='gray20', ylab='', xlab ='',lty=3, main='Using Kernel 1', cex.main=0.75)
+lines(GPpredict1,col='green',lwd=1)
+legend('top',legend = c('target','GP'),col=c('gray20','green'),lty=c(3,1),cex=.7,box.lty=1)
+
+plot(actualTS,t='l',col='gray20', ylab='', xlab ='',lty=3, main='Using Kernel 2', cex.main=0.75)
+lines(GPpredict2,col='green',lwd=1)
+legend('top',legend = c('target','GP'),col=c('gray20','green'),lty=c(3,1),cex=.7,box.lty=1)
+
+plot(actualTS,t='l',col='gray20', ylab='', xlab ='',lty=3, main='Using Kernel "vanilladot"', cex.main=0.75)
+lines(GPpredict3,col='green',lwd=1)
+legend('top',legend = c('target','GP'),col=c('gray20','green'),lty=c(3,1),cex=.7,box.lty=1)
+
+plot(actualTS,t='l',col='gray20', ylab='', xlab ='',lty=3, main='Using Kernel "rbfdot"', cex.main=0.75)
+lines(GPpredict4,col='green',lwd=1)
+legend('top',legend = c('target','GP'),col=c('gray20','green'),lty=c(3,1),cex=.7,box.lty=1)
+
+```
+
+
+
+percentage of outperforming direct sample mean:
+
+* kernel 1: 42.5%
+* kernel 2: 90.2%
+* kernel 3: 97.3%
+* kernel 4: 48.9%
+
+The linear kernels are the kernels that work best. The exponential quadratic kernel outperform the sample mean, but its performance is below the linear ones. Only using a linear kernel (vanilladot) is slighty better than using a combination of both types, as in kernel 2.
+
+
+
+
+```{r include=FALSE}
+library(xts)
+library(zoo)
+library(quantmod) # data, plotting, quant modelling
+library(PerformanceAnalytics) # performance and risk management
+library(matrixStats)
+library(foreach)
+library(kableExtra)
+
+```
+
+
+
+```{r include=FALSE}
+##Performance Measures for Trading strategies
+Performance <- function(x) {
+  cumRetx = Return.cumulative(x,geometric = TRUE)
+  annRetx = Return.annualized(x, scale=252)
+  sharpex = SharpeRatio.annualized(x, scale=252)
+  winpctx = length(x[x > 0])/length(x[x != 0])
+  annSDx = sd.annualized(x, scale=252)
+  
+  DDs <- findDrawdowns(x)
+  maxDDx = min(DDs$return)
+  maxLx = max(DDs$length)
+  
+  Perf = c(cumRetx, annRetx, sharpex, winpctx, annSDx, maxDDx, maxLx)
+  names(Perf) = c("Cumulative Return", "Annual Return","Annualized Sharpe Ratio",
+                  "Win %", "Annualized Volatility", "Maximum Drawdown", "Max Length Drawdown")
+  return(Perf)
+}
+```
+
+
+
+```{r include=FALSE}
+##Average Performance of MA crossover over short (1 yr, 6 mon) fixed length periods
+##using Rolling windows. Window size 252 (a year of daily data) or 252/2 for 6 mon
+RollingTestMAStrategy <- function(myStock,ts =ev,s=5, m=20,longshort=0,w_size=252) {
+  myPosition <- sig <- Lag(ifelse(SMA(ts,s)>SMA(ts,m), 1, longshort),1)
+  bmkReturns <- dailyReturn(myStock, type = "arithmetic")
+  myReturns <- bmkReturns*sig
+  names(bmkReturns) <- 'BH'
+  names(myReturns) <- 'Me'
+  tt <- na.omit(merge(bmkReturns,myReturns))
+  n_windows = nrow(tt) - w_size
+  if(n_windows<1) stop("Window size too large")
+  
+  perform = foreach(i=1:n_windows, .combine = rbind) %do%{
+    bhStra = tt$BH[i:(w_size+i-1),]
+    myStra = tt$Me[i:(w_size+i-1),]
+    per=rbind(BH=Performance(bhStra),Me=Performance(myStra))
+    return(per)
+  }
+  
+  bhindx = seq(1,2*n_windows,2); meindx = seq(2,2*n_windows,2)
+  BHmeans = colMeans2(perform,rows = bhindx)
+  MEmeans = colMeans2(perform,rows = meindx)
+  MeanPerf=rbind(BHmeans,MEmeans)
+  colnames(MeanPerf)=colnames(perform)
+  rownames(MeanPerf)=c("BH","Me")
+  return(list("AvgPerf"=MeanPerf,"NumWindows"=n_windows))
+}
+```
+
+
+
+
+```{r include=FALSE}
+# Load and set up data
+##frequency of sampling
+tau=1 #data is daily. Try tau=20 (month), tau=60 (quarterly)
+#x <- read.csv('data/AAPL.csv', sep = ",", header = TRUE)
+x <- read.csv("C:/Users/Jt_an/Google Drive/GSE - Finance/3 trim_/Machine Learning/HomeWorks/HW2/data/IBEX35.csv")
+#x <- read.csv("C:/Users/Jt_an/Google Drive/GSE - Finance/3 trim_/Machine Learning/HomeWorks/HW2/data/CWTI.csv")
+x<-x[,-c(1,9)] #"downloadedDate"
+# x<-x[,-c(1,9)] #for assets CVI, EURUSD
+##use Date as index
+data <- as.xts(zoo(as.matrix(x[,-1]), as.Date(as.character(x[,1]))))
+
+## Target :  Adj.Close Price 
+target <- data$Adj.Close
+
+##Indicators for use in trade-signals:
+# Bearish sentiment indicators
+negativeP= na.omit(data$negativePartscr)
+uncertaintyP= na.omit(data$uncertaintyPartscr)
+findownP= na.omit(data$findownPartscr)
+
+## Bullish sentiment indicators
+positiveP= na.omit(data$positivePartscr)
+certaintyP= na.omit(data$certaintyPartscr)
+finupP= na.omit(data$finupPartscr)
+
+##Combinations
+BULL = .33*(positiveP+certaintyP+finupP); 
+BEAR= .33*(negativeP+uncertaintyP+findownP); 
+names(BULL)<-"BULL"; names(BEAR)<-"BEAR"
+# Bull-Bear ratio: NAs are interpolated with  leftmost and rightmost non-NA value
+##(NAs can be produced when BULL=BEAR=0)
+BBr<- na.fill(100*BULL/(BULL+BEAR),"extend")
+names(BBr)<-"BBr"
+# BBlog<- 0.5*log((BULL+1)/(BEAR+1))
+
+#PNr <-na.fill(100*positiveP/(positiveP+negativeP),"extend")
+PNlog<- 0.5*log((positiveP+1)/(negativeP+1))
+names(PNlog)<-"PNr"
+
+
+
+
+##Test Performance of Trading strategy against BH
+##MA crossover strategy: parameters s<m (short-long periods)
+##Rule: MA(s)>MA(m) buy, else sell
+# the explanatory variable
+#ev <- BBr; #positiveP;   #negativeP; BULL; BEAR; PNr
+
+##Run tests for ev = {positiveP,negativeP,BULL,BEAR,BBr,PNr}
+## (s,m) = {5,10,15,20}x{25,50,100}
+
+##Full period test
+#testMAStrategy(target,ts=ev,s=12,m=50,longshort = 0)
+
+##Average Performance of MA crossover over fixed length periods (window_size= 1 yr, 6 mon) 
+##using Rolling windows. Window size 252 (a year of daily data) or 252/2 for 6 mon
+##Number of windows = full_period - window_size
+#meanperf = RollingTestMAStrategy(myStock=target,ts =ev,s=10, m=50,longshort=0,w_size=252/4)
+#View(meanperf$AvgPerf)  
+#meanperf$NumWindows
+```
+
+# Problem Set 2
+
+## 1. Backtesting trading strategies based on sentiment indicators
+
+### i) Testing performance of MAcross strategy
+
+In all of the following rolling window analysis we will be using a window size of 3 months. The periods for the moving average will be: 5,10,15,20 for the short-term one, and 25,50 for the long-term one. 
+
+As we will see, the crossing moving avearge strategy always outperforms the buy & hold strategy in terms of cumulative returns and maximum drawdown. However, this does not mean that those strategies are good. A buy & hold strategy in IBEX in COVID times is not a vergy good strategy. So, it is quite easy to outperform it.
+
+Here we test Long-only Bull-Bear Ratio,
+
+```{r echo=FALSE}
+ev <- BBr; #positiveP;   #negativeP; BULL; BEAR; PNr
+BBr_LO <- rbind(RollingTestMAStrategy(myStock=target,ts =ev,s=5, m=25,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=5, m=50,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=10, m=25,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=10, m=50,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=15, m=25,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=15, m=50,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=20, m=25,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=20, m=50,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=20, m=25,longshort=0,w_size=252/4)$AvgPerf[1,])
+
+rownames(BBr_LO)<-c("Me_5/25","Me_5/50","Me_10/25","Me_10/50",
+                 "Me_15/25","Me_15/50","Me_20/25","Me_20/50","B&H")
+
+
+k1<-kable(BBr_LO, caption = "Long-only Bull-Bear Ratio")
+kable_styling(k1, latex_options = c("hold_position", "scale_down"))
+
+```
+
+
+However, the only combination that gives a positive cumulative return is the one with s=20 and m=25. Given that our target is IBEX (is not a bull market) and in COVID times, it seems logical that restricting our strategy to long-positions will give us a bad performance.
+
+
+```{r echo=FALSE}
+ev <- BBr; #positiveP;   #negativeP; BULL; BEAR; PNr
+BBr_LS<-rbind(RollingTestMAStrategy(myStock=target,ts =ev,s=5, m=25,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=5, m=50,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=10, m=25,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=10, m=50,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=15, m=25,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=15, m=50,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=20, m=25,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=20, m=50,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=20, m=50,longshort=-1,w_size=252/4)$AvgPerf[1,])
+
+rownames(BBr_LS)<-c("Me_5/25","Me_5/50","Me_10/25","Me_10/50",
+                 "Me_15/25","Me_15/50","Me_20/25","Me_20/50","B&H")
+k1<-kable(BBr_LS, caption = "Long-Short Bull-Bear Ratio")
+kable_styling(k1, latex_options = c("hold_position", "scale_down"))
+```
+
+The best combination (in terms of Annualized Sharpe Ratio) is again using s=20 m=25. It gives better results than only using long-positions. Not only for this specific combinations. There are other combinations with a positive cumulative Return. The win rate for all combinations is near 50%
+
+```{r echo=FALSE}
+ev <- PNlog #BBr; #positiveP;   #negativeP; BULL; BEAR; PNr
+PNlog_LO <- rbind (RollingTestMAStrategy(myStock=target,ts =ev,s=5, m=25,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=5, m=50,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=10, m=25,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=10, m=50,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=15, m=25,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=15, m=50,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=20, m=25,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=20, m=50,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=20, m=50,longshort=0,w_size=252/4)$AvgPerf[1,])
+rownames(PNlog_LO)<-c("Me_5/25","Me_5/50","Me_10/25","Me_10/50",
+                 "Me_15/25","Me_15/50","Me_20/25","Me_20/50","B&H")
+
+k1<-kable(PNlog_LO, caption = "Long-only PNlog")
+kable_styling(k1, latex_options = c("hold_position", "scale_down"))
+
+```
+
+Even though we are only trading long positions, this strategy yields good results. Most of the combinations have a positive cumulative return. The best one is the (5,50) case. It has a winrate of 60%, a cumulative return of 0.13 and a Sharpe Ratio of 2.67
+
+
+
+```{r echo=FALSE}
+ev <- PNlog #BBr; #positiveP;   #negativeP; BULL; BEAR; PNr
+PNlog_LS <- rbind(RollingTestMAStrategy(myStock=target,ts =ev,s=5, m=25,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=5, m=50,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=10, m=25,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=10, m=50,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=15, m=25,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=15, m=50,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=20, m=50,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=20, m=50,longshort=-1,w_size=252/4)$AvgPerf[1,])
+
+rownames(PNlog_LS)<-c("Me_5/25","Me_5/50","Me_10/25","Me_10/50",
+                 "Me_15/25","Me_15/50","Me_20/50","B&H")
+
+k1<-kable(PNlog_LS, caption = "Long-short PNlog")
+kable_styling(k1, latex_options = c("hold_position", "scale_down"))
+```
+
+Allowing PNlog to trade short positions improves the results. Now the best combination has a cumulative return of 0.65 and Sharpe-ratio of 12.98 
+
+
+```{r echo=FALSE}
+ev <- positiveP #BBr; #positiveP;   #negativeP; BULL; BEAR; PNr
+positiveP_LO <- rbind(RollingTestMAStrategy(myStock=target,ts =ev,s=5, m=25,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=5, m=50,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=10, m=25,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=10, m=50,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=15, m=25,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=15, m=50,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=20, m=25,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=20, m=50,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=20, m=50,longshort=0,w_size=252/4)$AvgPerf[1,])
+
+rownames(positiveP_LO)<-c("Me_5/25","Me_5/50","Me_10/25","Me_10/50",
+                 "Me_15/25","Me_15/50","Me_20/25","Me_20/50","B&H")
+
+
+k1<-kable(positiveP_LO, caption = "Long-only positiveP")
+kable_styling(k1, latex_options = c("hold_position", "scale_down"))
+```
+
+
+```{r echo=FALSE}
+ev <- positiveP #BBr; #positiveP;   #negativeP; BULL; BEAR; PNr
+positiveP_LS <- rbind(RollingTestMAStrategy(myStock=target,ts =ev,s=5, m=25,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=5, m=50,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=10, m=25,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=10, m=50,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=15, m=25,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=15, m=50,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=20, m=25,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=20, m=50,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=20, m=50,longshort=-1,w_size=252/4)$AvgPerf[1,])
+
+rownames(positiveP_LS)<-c("Me_5/25","Me_5/50","Me_10/25","Me_10/50",
+                 "Me_15/25","Me_15/50","Me_20/25","Me_20/50","B&H")
+
+k1<-kable(positiveP_LS, caption = "Long-short positiveP")
+kable_styling(k1, latex_options = c("hold_position", "scale_down"))
+```
+
+
+Long-only negativeP
+```{r echo=FALSE}
+ev <- negativeP #BBr; #positiveP;   #negativeP; BULL; BEAR; PNr
+negativeP_LO <- rbind(RollingTestMAStrategy(myStock=target,ts =ev,s=5, m=25,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=5, m=50,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=10, m=25,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=10, m=50,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=15, m=25,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=15, m=50,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=20, m=25,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=20, m=50,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=20, m=50,longshort=0,w_size=252/4)$AvgPerf[1,])
+
+rownames(negativeP_LO)<-c("Me_5/25","Me_5/50","Me_10/25","Me_10/50",
+                 "Me_15/25","Me_15/50","Me_20/25","Me_20/50","B&H")
+
+k1<-kable(negativeP_LO, caption = "Long-only negativeP")
+kable_styling(k1, latex_options = c("hold_position", "scale_down"))
+```
+
+
+```{r echo=FALSE}
+ev <- negativeP #BBr; #positiveP;   #negativeP; BULL; BEAR; PNr
+negativeP_LS <-rbind(RollingTestMAStrategy(myStock=target,ts =ev,s=5, m=25,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=5, m=50,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=10, m=25,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=10, m=50,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=15, m=25,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=15, m=50,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=20, m=25,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=20, m=50,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=20, m=50,longshort=-1,w_size=252/4)$AvgPerf[1,])
+
+rownames(negativeP_LS)<-c("Me_5/25","Me_5/50","Me_10/25","Me_10/50",
+                 "Me_15/25","Me_15/50","Me_20/25","Me_20/50","B&H")
+
+k1<-kable(negativeP_LS, caption = "Long-Short negativeP")
+kable_styling(k1, latex_options = c("hold_position", "scale_down"))
+```
+
+
+```{r echo=FALSE}
+ev <- BULL #BBr; #positiveP;   #negativeP; BULL; BEAR; PNr
+BULL_LO <- rbind(RollingTestMAStrategy(myStock=target,ts =ev,s=5, m=25,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=5, m=50,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=10, m=25,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=10, m=50,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=15, m=25,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=15, m=50,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=20, m=25,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=20, m=50,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=20, m=50,longshort=0,w_size=252/4)$AvgPerf[1,])
+
+rownames(BULL_LO)<-c("Me_5/25","Me_5/50","Me_10/25","Me_10/50",
+                 "Me_15/25","Me_15/50","Me_20/25","Me_20/50","B&H")
+
+k1<-kable(BULL_LO, caption = "Long-only BULL")
+kable_styling(k1, latex_options = c("hold_position", "scale_down"))
+```
+
+
+
+
+```{r echo=FALSE}
+ev <- BULL #BBr; #positiveP;   #negativeP; BULL; BEAR; PNr
+BULL_LS <- rbind(RollingTestMAStrategy(myStock=target,ts =ev,s=5, m=25,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=5, m=50,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=10, m=25,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=10, m=50,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=15, m=25,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=15, m=50,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=20, m=25,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=20, m=50,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=20, m=50,longshort=-1,w_size=252/4)$AvgPerf[1,])
+
+rownames(BULL_LS)<-c("Me_5/25","Me_5/50","Me_10/25","Me_10/50",
+                 "Me_15/25","Me_15/50","Me_20/25","Me_20/50","B&H")
+
+k1<-kable(BULL_LS, caption = "Long-short BULL")
+kable_styling(k1, latex_options = c("hold_position", "scale_down"))
+```
+
+
+```{r echo=FALSE}
+ev <- BEAR #BBr; #positiveP;   #negativeP; BULL; BEAR; PNr
+BEAR_LO <- rbind(RollingTestMAStrategy(myStock=target,ts =ev,s=5, m=25,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=5, m=50,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=10, m=25,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=10, m=50,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=15, m=25,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=15, m=50,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=20, m=25,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=20, m=50,longshort=0,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=20, m=50,longshort=0,w_size=252/4)$AvgPerf[1,])
+
+rownames(BEAR_LO)<-c("Me_5/25","Me_5/50","Me_10/25","Me_10/50",
+                 "Me_15/25","Me_15/50","Me_20/25","Me_20/50","B&H")
+
+k1<-kable(BEAR_LO, caption = "Long-only BEAR")
+kable_styling(k1, latex_options = c("hold_position", "scale_down"))
+```
+
+
+```{r echo=FALSE}
+ev <- BEAR #BBr; #positiveP;   #negativeP; BULL; BEAR; PNr
+BEAR_LS <- rbind(RollingTestMAStrategy(myStock=target,ts =ev,s=5, m=25,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=5, m=50,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=10, m=25,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=10, m=50,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=15, m=25,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=15, m=50,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=20, m=25,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=20, m=50,longshort=-1,w_size=252/4)$AvgPerf[2,],
+RollingTestMAStrategy(myStock=target,ts =ev,s=20, m=50,longshort=-1,w_size=252/4)$AvgPerf[1,])
+
+rownames(BEAR_LS)<-c("Me_5/25","Me_5/50","Me_10/25","Me_10/50",
+                 "Me_15/25","Me_15/50","Me_20/25","Me_20/50","B&H")
+
+k1<-kable(BEAR_LS, caption = "Long-short BEAR")
+kable_styling(k1, latex_options = c("hold_position", "scale_down"))
+```
+
+As stated before, given the market and the situation it was easy to outperform the B&H strategy. However, we can see that strategies perform very different. The worst strategies are those using a BEARISH indicator and only trading LONG positions.
+
+The best ones are Long-short positiveP, Long-Short PNlog, and Long-Short BBr. 
+
+### ii) Design your own strategy
+```{r include=FALSE}
+library(TTR)
+```
+
+Given the results that we got in the previous question I will adapt the RSI indicator on: Long-short positiveP, Long-Short PNlog, and Long-Short BBr. I will try using different number of periods. I will select the best indicator with the optimal number of periods and I will allow taking leveraged positions.
+
+
+```{r include=FALSE}
+RollingTestRSI <- function(ts=ev,n=5) {
+  myStock= target
+  w_size=252/4
+  myPosition <- sig <- Lag(ifelse (RSI(ev,n)>70,-1,ifelse (RSI(ev,n)<30,1,0)),1)
+  bmkReturns <- dailyReturn(myStock, type = "arithmetic")
+  myReturns <- bmkReturns*sig
+  names(bmkReturns) <- 'BH'
+  names(myReturns) <- 'Me'
+  tt <- na.omit(merge(bmkReturns,myReturns))
+  n_windows = nrow(tt) - w_size
+  if(n_windows<1) stop("Window size too large")
+  
+  perform = foreach(i=1:n_windows, .combine = rbind) %do%{
+    bhStra = tt$BH[i:(w_size+i-1),]
+    myStra = tt$Me[i:(w_size+i-1),]
+    per=rbind(BH=Performance(bhStra),Me=Performance(myStra))
+    return(per)
+  }
+  
+  bhindx = seq(1,2*n_windows,2); meindx = seq(2,2*n_windows,2)
+  BHmeans = colMeans2(perform,rows = bhindx)
+  MEmeans = colMeans2(perform,rows = meindx)
+  MeanPerf=rbind(BHmeans,MEmeans)
+  colnames(MeanPerf)=colnames(perform)
+  rownames(MeanPerf)=c("BH","Me")
+  return(list("AvgPerf"=MeanPerf,"NumWindows"=n_windows))
+}
+```
+
+RSI(Bull Bear Ratio) for n=2:8
+```{r echo=FALSE}
+ev <- BBr; #positiveP;   #negativeP; BULL; BEAR; PNr
+
+periods <- c(2:8)
+
+for (per in periods) {
+print(per)
+print(RollingTestRSI(ts =ev,n=per)$AvgPerf)
+
+}
+
+```
+
+RSI(positiveP) for n=2:8
+```{r echo=FALSE}
+ev <- positiveP; #positiveP;   #negativeP; BULL; BEAR; PNr
+
+periods <- c(2:8)
+for (per in periods) {
+print(per)
+print(RollingTestRSI(ts =ev,n=per)$AvgPerf)
+
+}
+
+
+```
+
+
+RSI(Pnlog) for n=2:8
+```{r echo=FALSE}
+ev <- PNlog; #positiveP;   #negativeP; BULL; BEAR; PNr
+
+periods <- c(1:8)
+for (per in periods) {
+  print(per)
+  print(RollingTestRSI(ts =ev,n=per)$AvgPerf)
+
+}
+
+
+```
+
+The RSI works well using either using Pnlog or positiveP indicators with a few periods for the moving averages. I will use positiveP instead of Pnlog. Even though Pnlog n=2 has the highest cumulative return, positiveP has the highest Sharpe Ratio and a lower maximum drawdown. Moreover, instead of buying +1 or selling -1, I will allow to buy or sell more shares. It will be possible to have a higher cumulative return. The number of shares will depend on the distance between the RSI level and the bounds (30 and 70). If the RSI level is equal to the bound, it will buy/sell X shares and it will increase arithmetically up to the highest/lowest level, where we will buy/sell 2X shares. The input for the function is (X-1)*10. If we want to buy 2 at the bounds and 4 at the extremes, input=10.
+
+```{r include=FALSE}
+RollingTestRSIPositiveP <- function(l) {
+  ev=positiveP
+  n=1
+  myStock= target
+  w_size=252/4
+  myPosition <- sig <- Lag(ifelse (RSI(ev,2)>70,-1*(1+((RSI(ev,2)-70)/100)*l/3),ifelse (RSI(ev,2)<30,1*(1+((RSI(ev,2)-30)/100)*-l/3),0)),1)
+  bmkReturns <- dailyReturn(myStock, type = "arithmetic")
+  myReturns <- bmkReturns*sig
+  names(bmkReturns) <- 'BH'
+  names(myReturns) <- 'Me'
+  tt <- na.omit(merge(bmkReturns,myReturns))
+  n_windows = nrow(tt) - w_size
+  if(n_windows<1) stop("Window size too large")
+  
+  perform = foreach(i=1:n_windows, .combine = rbind) %do%{
+    bhStra = tt$BH[i:(w_size+i-1),]
+    myStra = tt$Me[i:(w_size+i-1),]
+    per=rbind(BH=Performance(bhStra),Me=Performance(myStra))
+    return(per)
+  }
+  
+  bhindx = seq(1,2*n_windows,2); meindx = seq(2,2*n_windows,2)
+  BHmeans = colMeans2(perform,rows = bhindx)
+  MEmeans = colMeans2(perform,rows = meindx)
+  MeanPerf=rbind(BHmeans,MEmeans)
+  colnames(MeanPerf)=colnames(perform)
+  rownames(MeanPerf)=c("BH","Me")
+  return(list("AvgPerf"=MeanPerf,"NumWindows"=n_windows))
+}
+```
+
+Let's try with X=1,2,3,5
+```{r echo=FALSE}
+leverage<-c(0,10,20,40)
+
+
+for (lev in leverage) {
+print(lev)
+print(RollingTestRSIPositiveP(l=lev)$AvgPerf)
+
+}
+
+```
+
+The win-ratio is 67% and the maximum length drawdown is 27. While for the B&H strategy the win-rate is 47% and the maximum length drawdown is 34. Without leverage we get a cumulative return of 0.25, a Sharpe ratio of 6.16 and a maximum drawdown of -0.04. As we increase leverage we get a higher cumulative return, a higher sharpe ratio, a higher volatility and a higher maximum drawdown. 
+
+## 2. Choose 7 stocks and compute long-only and long-short MinVar portfolio. Plot the Efficient Frontier for long-only portfolio in mean-variance space
+
+
+```{r include=FALSE}
+library(xts); library(quantmod); library(plyr)
+library("MSBVAR"); library("vars"); library(TTR)
+library(kernlab) ##for GP
+library(caret) ##for some data handling functions
+library(MASS)
+library(Metrics)
+library(reshape2)
+library(ggplot2)
+library(kableExtra)
+library(gridExtra)
+library(PortfolioAnalytics)
+library(DEoptim)
+library(GenSA)
+library(lpSolve)
+library(fPortfolio)
+library(ROI) 
+library(ROI.plugin.quadprog)
+library(ROI.plugin.glpk)
+
+```
+
+
+```{r include=FALSE}
+AAPL<-read.csv("C:/Users/Jt_an/Google Drive/GSE - Finance/3 trim_/Machine Learning/HomeWorks/HW2/data/AAPL.csv")
+AAPL <- as.xts(zoo(as.matrix(AAPL[,-2]), as.Date(as.character(AAPL[,2]))))
+AAPL_ret <- dailyReturn(AAPL$Adj.Close, type = "arithmetic")
+AAPL_ret[is.na(AAPL_ret)]<-0
+
+AMZN <- read.csv("C:/Users/Jt_an/Google Drive/GSE - Finance/3 trim_/Machine Learning/HomeWorks/HW2/data/AMZN.csv")
+AMZN <- as.xts(zoo(as.matrix(AMZN[,-2]), as.Date(as.character(AMZN[,2]))))
+AMZN_ret <- dailyReturn(AMZN$Adj.Close, type = "arithmetic")
+AMZN_ret[is.na(AMZN_ret)]<-0
+
+HSBC <- read.csv("C:/Users/Jt_an/Google Drive/GSE - Finance/3 trim_/Machine Learning/HomeWorks/HW2/data/HSBC.csv")
+HSBC <- as.xts(zoo(as.matrix(HSBC[,-2]), as.Date(as.character(HSBC[,2]))))
+HSBC_ret <- dailyReturn(HSBC$Adj.Close, type = "arithmetic")
+HSBC_ret[is.na(HSBC_ret)]<-0
+
+DB <- read.csv("C:/Users/Jt_an/Google Drive/GSE - Finance/3 trim_/Machine Learning/HomeWorks/HW2/data/DB.csv")
+DB <- as.xts(zoo(as.matrix(DB[,-2]), as.Date(as.character(DB[,2]))))
+DB_ret <- dailyReturn(DB$Adj.Close, type = "arithmetic")
+DB_ret[is.na(DB_ret)]<-0
+
+DIS <- read.csv("C:/Users/Jt_an/Google Drive/GSE - Finance/3 trim_/Machine Learning/HomeWorks/HW2/data/DIS.csv")
+DIS <- as.xts(zoo(as.matrix(DIS[,-2]), as.Date(as.character(DIS[,2]))))
+DIS_ret <- dailyReturn(DIS$Adj.Close, type = "arithmetic")
+DIS_ret[is.na(DIS_ret)]<-0
+
+FB <- read.csv("C:/Users/Jt_an/Google Drive/GSE - Finance/3 trim_/Machine Learning/HomeWorks/HW2/data/FB.csv")
+FB <- as.xts(zoo(as.matrix(FB[,-2]), as.Date(as.character(FB[,2]))))
+FB_ret <- dailyReturn(FB$Adj.Close, type = "arithmetic")
+FB_ret[is.na(FB_ret)]<-0
+
+GOOG <- read.csv("C:/Users/Jt_an/Google Drive/GSE - Finance/3 trim_/Machine Learning/HomeWorks/HW2/data/GOOG.csv")
+GOOG <- as.xts(zoo(as.matrix(GOOG[,-2]), as.Date(as.character(GOOG[,2]))))
+GOOG_ret <- dailyReturn(GOOG$Adj.Close, type = "arithmetic")
+GOOG_ret[is.na(GOOG_ret)]<-0
+
+df <- cbind(AAPL_ret,AMZN_ret,HSBC_ret,DB_ret,DIS_ret,FB_ret,GOOG_ret)
+colnames(df)<-c("AAPL","AMZN","HSBC","DB","DIS","FB","GOOG")
+
+fund.names <- colnames(df)
+
+df[is.na(df)]<-0
+
+
+```
+
+
+```{r include=FALSE}
+pspec <- portfolio.spec(assets=fund.names)
+pspec <- add.constraint(portfolio=pspec, type="long_only")
+minSD.portfolio <- add.objective(portfolio=pspec,
+                                 type="risk",
+                                 name="StdDev")
+
+minSD.opt <- optimize.portfolio(R = df, portfolio = minSD.portfolio,
+                                optimize_method = "DEoptim", #,"ROI", , GenSA
+                                trace = TRUE)
+```
+
+
+```{r echo=FALSE}
+k1<-kable(minSD.opt$weights, caption = "Long-only MinVar portfolio")
+kable_styling(k1, latex_options = c("hold_position"))
+```
+
+
+```{r include=FALSE}
+pspec <- portfolio.spec(assets=fund.names)
+pspec <- add.constraint(portfolio=pspec, type = "box", min = -0.99, max = 0.99)
+minSD.portfolio <- add.objective(portfolio=pspec,
+                                 type="risk",
+                                 name="StdDev")
+
+minSD.opt <- optimize.portfolio(R = df, portfolio = minSD.portfolio,
+                                optimize_method = "GenSA", #,"ROI", , GenSA
+                                trace = TRUE)
+```
+
+
+```{r echo=FALSE}
+k1<-kable(minSD.opt$weights, caption = "Long-short MinVar portfolio")
+kable_styling(k1, latex_options = c("hold_position"))
+```
+
+Efficient Frontier for long-only portfolios
+```{r include=FALSE}
+pspec <- portfolio.spec(assets=fund.names)
+pspec <- add.constraint(portfolio=pspec, type="long_only")
+pspec <- add.objective(portfolio=pspec,type='return',name='mean')
+
+# to create the efficient frontier 
+pspec <- add.objective(portfolio=pspec, 
+                       type="return",
+                       name="mean") # mean
+pspec <- add.objective(portfolio=pspec, 
+                       type="risk",
+                       name="var") # uses sd
+meansd.ef <- create.EfficientFrontier(
+                      R = df,
+                      portfolio = pspec,
+                      type = "mean-sd",
+                      )
+
+minSD.portfolio <- add.objective(portfolio=pspec,
+                                 type="risk",
+                                 name="StdDev")
+minSD.opt <- optimize.portfolio(R = df, portfolio = minSD.portfolio,
+                                optimize_method = "ROI", #,"ROI", , GenSA
+                                trace = TRUE)
+
+chart.EfficientFrontier(minSD.opt,
+                      match.col="StdDev", # which column to use for risk
+                      type="l", 
+                      RAR.text="Sharpe Ratio",
+                      tangent.line = TRUE,
+                      chart.assets=TRUE,
+                      labels.assets=TRUE,xlim=c(0.0,0.03),ylim=c(-0.001,0.002))
+```
+
+
+![](C:/Users/Jt_an/Google Drive/GSE - Finance/3 trim_/Machine Learning/HomeWorks/HW2/00004f.png)
+
+
+
+
+## 3. Give a proof for the fomrula for the variance of portfolio returns
+
+$$Var(a_1X_1+a_2X_2)=E[(a_1X_1+a_2X_2-a_1\mu_{x_1}-a_2\mu_{x_2})^2]=E[(a_1(X_1-\mu_{x_1})+a_2(X_2-\mu_{x_2}))^2]=$$
+$$E[a_1a_1(X_1-\mu_{x_1})^2+a_2a_2(X_2-\mu_{x_2})^2+a_1a_2(X_1-\mu_{x_1})(X_2-\mu_{x_2})]=$$
+$$a_1a_1\sigma_{x_1}^2+a_2a_2\sigma_{x_2}^2+2a_1a_2\sigma_{x_1x_2}=$$
+$$a_1a_1\sigma_{x_1}^2+a_2a_2\sigma_{x_2}^2+2a_1a_2\rho_{x_1x_2}\sigma_{x_1x_2}=$$
+
+$$\sum_{i=1}^{2}\sum_{j=1}^{2}a_ia_j\sigma_i\sigma_j\rho_{ij}$$
+
+Assume that for n=k holds:
+
+$$Var \Bigg(\sum_{i=1}^{k}a_iX_i\Bigg)=\sum_{i=1}^{k}\sum_{j=1}^{k}a_ia_j\sigma_i\sigma_j\rho_{ij}$$
+
+Show that n=k+1 holds:
+
+$$Var \Bigg(\sum_{i=1}^{k+1}a_iX_i\Bigg)=\sum_{i=1}^{k+1}\sum_{j=1}^{k+1}a_ia_j\sigma_i\sigma_j\rho_{ij}$$
+
+Developing LHS
+
+$$Var \Bigg(\sum_{i=1}^ka_iX_i+a_{k+1}X_{k+1}\Bigg)=$$
+$$Var (\sum_{i=1}^ka_iX_i)+Var(a_{k+1}X_{k+1})+2\sum_i^ka_ia_{k+1}\rho_{\sum_i^kX_iX_{k+1}}=$$
+$$\sum_{i=1}^k\sum_{j=1}^ka_ia_j\sigma_i\sigma_j\rho_{ij}+a_{k+1}^2\sigma^2_{X_{k+1}}+2\sum_i^ka_ia_k\rho_{\sum_i^kX_iX_{k+1}} =$$
+
+
+$$\sum_{i=1}^{k+1}\sum_{j=1}^{k+1}a_ia_j\sigma_i\sigma_j\rho_{ij}$$
+
+
+## 4. Mean Variance approximation to Expected Utility
+
+
+$$u^\prime(C)>0$$
+
+$$u^{\prime\prime}(C)<0$$
+
+Taking the second order taylor approximation to approximate the expected utility around $E(C)$
+
+$$u(C) \approx u(E[C])+u^\prime(E[C])(C-E(C))+\frac{1}{2}u^{\prime\prime}(E[C])(C-E(C))^2$$
+
+Taking Expectations
+
+$$E[u(C)] \approx E[u(E[C])]+E[u^\prime(E[C])(C-E(C))]+E[\frac{1}{2}u^{\prime\prime}(E[C])(C-E(C))^2]$$
+
+$E[u^\prime(E[C])(C-E(C))]=0$ and $E[\frac{1}{2}u^{\prime\prime}(E[C])(C-E(C))^2]=\frac{1}{2}u''(C)Var(C)$ and let $\lambda=-u{\prime\prime}(C)>0$
+$$E[u(C)] \approx E[u(E[C])]- \frac{1}{2}\lambda Var(C)$$
+
+
+
+
+
+
+
+
+# Project
+
+```{r include=FALSE}
+lib <- c('data.table', 'xts','zoo', 'quantmod', 'PerformanceAnalytics', 'PortfolioAnalytics', 'GenSA', 'timeSeries','fPortfolio', 'quantmod', 'plyr', 'PortfolioAnalytics', 'ROI', 'GenSA','DEoptim', 'xtable', "stargazer", "ROI.plugin.glpk", 'ROI.plugin.quadprog', 'ROI.plugin.symphony', 'jtools', 'huxtable','portfolioBacktest','ggplot2','miscTools')
+
+loading.lib <- lapply(lib, require, character.only = TRUE)
+```
+
+```{r}
+setwd("C:/Users/Jt_an/Google Drive/GSE - Finance/3 trim_/Machine Learning/Project")
+AAPL <- read.csv('AAPL.csv', sep = ",", header = TRUE) #APPLE
+ABBV <- read.csv('ABBV.csv', sep = ",", header = TRUE)
+AMZN <- read.csv('AMZN.csv', sep = ",", header = TRUE) #AMAZON
+DB <- read.csv('DB.csv', sep = ",", header = TRUE) # Deutsche Bank AG
+DIS <- read.csv('DIS.csv', sep = ",", header = TRUE) # DISNEY
+FB <- read.csv('FB.csv', sep = ",", header = TRUE) # FACEBOOK
+GOOG <- read.csv('GOOG.csv', sep = ",", header = TRUE)  #GOOGLE
+GRFS <- read.csv('GRFS.csv', sep = ",", header = TRUE)
+HAL <- read.csv('HAL.csv', sep = ",", header = TRUE)
+HSBC <- read.csv('HSBC.csv', sep = ",", header = TRUE) #BRITISH INVESTMENT BANK
+JPM <- read.csv('JPM.csv', sep = ",", header = TRUE) #JPMORGAN CHASE
+KO <- read.csv('KO.csv', sep = ",", header = TRUE) 
+MCD<- read.csv('MCD.csv', sep = ",", header = TRUE) 
+MSFT <- read.csv('MSFT.csv', sep = ",", header = TRUE) #Microsoft
+PFE <- read.csv('PFE.csv', sep = ",", header = TRUE) # Pharmaceutical company
+XOM <- read.csv('XOM.csv', sep = ",", header = TRUE) 
+
+
+
+symbols=c('AAPL','ABBV','AMZN','DB','DIS','FB','GOOG','GRFS','HAL','HSBC','JPM','KO','MCD','MSFT','PFE','XOM') 
+
+
+AAPL <- as.xts(zoo(as.matrix(AAPL[,-c(1,2)]), as.Date(as.character(AAPL[,2]))))
+ABBV <- as.xts(zoo(as.matrix(ABBV[,-c(1,2)]), as.Date(as.character(ABBV[,2]))))
+AMZN <- as.xts(zoo(as.matrix(AMZN[,-c(1,2)]), as.Date(as.character(AMZN[,2]))))
+DB <- as.xts(zoo(as.matrix(DB[,-c(1,2)]), as.Date(as.character(DB[,2]))))
+DIS <- as.xts(zoo(as.matrix(DIS[,-c(1,2)]), as.Date(as.character(DIS[,2]))))
+FB <- as.xts(zoo(as.matrix(FB[,-c(1,2)]), as.Date(as.character(FB[,2]))))
+GOOG <- as.xts(zoo(as.matrix(GOOG[,-c(1,2)]), as.Date(as.character(GOOG[,2]))))
+GRFS <- as.xts(zoo(as.matrix(GRFS[,-c(1,2)]), as.Date(as.character(GRFS[,2]))))
+HAL <- as.xts(zoo(as.matrix(HAL[,-c(1,2)]), as.Date(as.character(HAL[,2]))))
+HSBC <- as.xts(zoo(as.matrix(HSBC[,-c(1,2)]), as.Date(as.character(HSBC[,2]))))
+JPM <- as.xts(zoo(as.matrix(JPM[,-c(1,2)]), as.Date(as.character(JPM[,2]))))
+KO <- as.xts(zoo(as.matrix(KO[,-c(1,2)]), as.Date(as.character(KO[,2]))))
+MCD <- as.xts(zoo(as.matrix(MCD[,-c(1,2)]), as.Date(as.character(MCD[,2]))))
+MSFT <- as.xts(zoo(as.matrix(MSFT[,-c(1,2)]), as.Date(as.character(MSFT[,2]))))
+PFE <- as.xts(zoo(as.matrix(PFE[,-c(1,2)]), as.Date(as.character(PFE[,2]))))
+XOM <- as.xts(zoo(as.matrix(XOM[,-c(1,2)]), as.Date(as.character(XOM[,2]))))
+
+AAPLadj <- AAPL$Adj.Close
+ABBVadj <- ABBV$Adj.Close
+AMZNadj <- AMZN$Adj.Close
+DBadj <- DB$Adj.Close
+DISadj <- DIS$Adj.Close
+FBadj <- FB$Adj.Close
+GOOGadj <- GOOG$Adj.Close
+GRFSadj <- GRFS$Adj.Close
+HALadj <- HAL$Adj.Close
+HSBCadj <- HSBC$Adj.Close
+JPMadj <- JPM$Adj.Close
+KOadj <- KO$Adj.Close
+MCDadj <- MCD$Adj.Close
+MSFTadj <- MSFT$Adj.Close
+PFEadj <- PFE$Adj.Close
+XOMadj <- XOM$Adj.Close
+
+
+AAPLBBr <-  na.fill(100*.33*(na.omit(AAPL$positivePartscr)+na.omit(AAPL$certaintyPartscr)+na.omit(AAPL$finupPartscr))/(.33*(na.omit(AAPL$positivePartscr)+na.omit(AAPL$certaintyPartscr)+na.omit(AAPL$finupPartscr))+.33*(na.omit(AAPL$negativePartscr)+na.omit(AAPL$uncertaintyPartscr)+na.omit(AAPL$findownPartscr))),"extend")
+AAPLPNlog <-0.5*log((na.omit(AAPL$positivePartscr)+1)/(na.omit(AAPL$negativePartscr)+1))
+
+ABBVBBr <-  na.fill(100*.33*(na.omit(ABBV$positivePartscr)+na.omit(ABBV$certaintyPartscr)+na.omit(ABBV$finupPartscr))/(.33*(na.omit(ABBV$positivePartscr)+na.omit(ABBV$certaintyPartscr)+na.omit(ABBV$finupPartscr))+.33*(na.omit(ABBV$negativePartscr)+na.omit(ABBV$uncertaintyPartscr)+na.omit(ABBV$findownPartscr))),"extend")
+ABBVPNlog <-0.5*log((na.omit(ABBV$positivePartscr)+1)/(na.omit(ABBV$negativePartscr)+1))
+
+AMZNBBr <-  na.fill(100*.33*(na.omit(AMZN$positivePartscr)+na.omit(AMZN$certaintyPartscr)+na.omit(AMZN$finupPartscr))/(.33*(na.omit(AMZN$positivePartscr)+na.omit(AMZN$certaintyPartscr)+na.omit(AMZN$finupPartscr))+.33*(na.omit(AMZN$negativePartscr)+na.omit(AMZN$uncertaintyPartscr)+na.omit(AMZN$findownPartscr))),"extend")
+AMZNPNlog <-0.5*log((na.omit(AMZN$positivePartscr)+1)/(na.omit(AMZN$negativePartscr)+1))
+
+DBBBr <-  na.fill(100*.33*(na.omit(DB$positivePartscr)+na.omit(DB$certaintyPartscr)+na.omit(DB$finupPartscr))/(.33*(na.omit(DB$positivePartscr)+na.omit(AAPL$certaintyPartscr)+na.omit(DB$finupPartscr))+.33*(na.omit(DB$negativePartscr)+na.omit(DB$uncertaintyPartscr)+na.omit(DB$findownPartscr))),"extend")
+DBPNlog <-0.5*log((na.omit(DB$positivePartscr)+1)/(na.omit(DB$negativePartscr)+1))
+
+DISBBr <-  na.fill(100*.33*(na.omit(DIS$positivePartscr)+na.omit(DIS$certaintyPartscr)+na.omit(DIS$finupPartscr))/(.33*(na.omit(DIS$positivePartscr)+na.omit(DIS$certaintyPartscr)+na.omit(DIS$finupPartscr))+.33*(na.omit(DIS$negativePartscr)+na.omit(DIS$uncertaintyPartscr)+na.omit(DIS$findownPartscr))),"extend")
+DISPNlog <-0.5*log((na.omit(DIS$positivePartscr)+1)/(na.omit(DIS$negativePartscr)+1))
+
+FBBBr <-  na.fill(100*.33*(na.omit(FB$positivePartscr)+na.omit(FB$certaintyPartscr)+na.omit(FB$finupPartscr))/(.33*(na.omit(FB$positivePartscr)+na.omit(FB$certaintyPartscr)+na.omit(FB$finupPartscr))+.33*(na.omit(FB$negativePartscr)+na.omit(FB$uncertaintyPartscr)+na.omit(FB$findownPartscr))),"extend")
+FBPNlog <-0.5*log((na.omit(FB$positivePartscr)+1)/(na.omit(FB$negativePartscr)+1))
+
+GOOGBBr <-  na.fill(100*.33*(na.omit(GOOG$positivePartscr)+na.omit(GOOG$certaintyPartscr)+na.omit(GOOG$finupPartscr))/(.33*(na.omit(GOOG$positivePartscr)+na.omit(GOOG$certaintyPartscr)+na.omit(GOOG$finupPartscr))+.33*(na.omit(GOOG$negativePartscr)+na.omit(GOOG$uncertaintyPartscr)+na.omit(GOOG$findownPartscr))),"extend")
+GOOGPNlog <-0.5*log((na.omit(GOOG$positivePartscr)+1)/(na.omit(GOOG$negativePartscr)+1))
+
+GRFSBBr <-  na.fill(100*.33*(na.omit(GRFS$positivePartscr)+na.omit(GRFS$certaintyPartscr)+na.omit(GRFS$finupPartscr))/(.33*(na.omit(GRFS$positivePartscr)+na.omit(GRFS$certaintyPartscr)+na.omit(GRFS$finupPartscr))+.33*(na.omit(GRFS$negativePartscr)+na.omit(GRFS$uncertaintyPartscr)+na.omit(GRFS$findownPartscr))),"extend")
+GRFSPNlog <-0.5*log((na.omit(GRFS$positivePartscr)+1)/(na.omit(GRFS$negativePartscr)+1))
+
+HALBBr <-  na.fill(100*.33*(na.omit(HAL$positivePartscr)+na.omit(HAL$certaintyPartscr)+na.omit(HAL$finupPartscr))/(.33*(na.omit(HAL$positivePartscr)+na.omit(HAL$certaintyPartscr)+na.omit(HAL$finupPartscr))+.33*(na.omit(HAL$negativePartscr)+na.omit(HAL$uncertaintyPartscr)+na.omit(HAL$findownPartscr))),"extend")
+HALPNlog <-0.5*log((na.omit(HAL$positivePartscr)+1)/(na.omit(HAL$negativePartscr)+1))
+
+HSBCBBr <-  na.fill(100*.33*(na.omit(HSBC$positivePartscr)+na.omit(HSBC$certaintyPartscr)+na.omit(HSBC$finupPartscr))/(.33*(na.omit(HSBC$positivePartscr)+na.omit(HSBC$certaintyPartscr)+na.omit(HSBC$finupPartscr))+.33*(na.omit(HSBC$negativePartscr)+na.omit(HSBC$uncertaintyPartscr)+na.omit(HSBC$findownPartscr))),"extend")
+HSBCPNlog <-0.5*log((na.omit(HSBC$positivePartscr)+1)/(na.omit(HSBC$negativePartscr)+1))
+
+JPMBBr <-  na.fill(100*.33*(na.omit(JPM$positivePartscr)+na.omit(JPM$certaintyPartscr)+na.omit(JPM$finupPartscr))/(.33*(na.omit(JPM$positivePartscr)+na.omit(JPM$certaintyPartscr)+na.omit(JPM$finupPartscr))+.33*(na.omit(JPM$negativePartscr)+na.omit(JPM$uncertaintyPartscr)+na.omit(JPM$findownPartscr))),"extend")
+JPMPNlog <-0.5*log((na.omit(JPM$positivePartscr)+1)/(na.omit(JPM$negativePartscr)+1))
+
+KOBBr <-  na.fill(100*.33*(na.omit(KO$positivePartscr)+na.omit(KO$certaintyPartscr)+na.omit(KO$finupPartscr))/(.33*(na.omit(KO$positivePartscr)+na.omit(KO$certaintyPartscr)+na.omit(KO$finupPartscr))+.33*(na.omit(KO$negativePartscr)+na.omit(KO$uncertaintyPartscr)+na.omit(KO$findownPartscr))),"extend")
+KOPNlog <-0.5*log((na.omit(KO$positivePartscr)+1)/(na.omit(KO$negativePartscr)+1))
+
+MCDBBr <-  na.fill(100*.33*(na.omit(MCD$positivePartscr)+na.omit(MCD$certaintyPartscr)+na.omit(MCD$finupPartscr))/(.33*(na.omit(MCD$positivePartscr)+na.omit(MCD$certaintyPartscr)+na.omit(MCD$finupPartscr))+.33*(na.omit(MCD$negativePartscr)+na.omit(MCD$uncertaintyPartscr)+na.omit(MCD$findownPartscr))),"extend")
+MCDPNlog <-0.5*log((na.omit(MCD$positivePartscr)+1)/(na.omit(MCD$negativePartscr)+1))
+
+MSFTBBr <-  na.fill(100*.33*(na.omit(MSFT$positivePartscr)+na.omit(MSFT$certaintyPartscr)+na.omit(MSFT$finupPartscr))/(.33*(na.omit(MSFT$positivePartscr)+na.omit(MSFT$certaintyPartscr)+na.omit(MSFT$finupPartscr))+.33*(na.omit(MSFT$negativePartscr)+na.omit(MSFT$uncertaintyPartscr)+na.omit(MSFT$findownPartscr))),"extend")
+MSFTPNlog <-0.5*log((na.omit(MSFT$positivePartscr)+1)/(na.omit(MSFT$negativePartscr)+1))
+
+PFEBBr <-  na.fill(100*.33*(na.omit(PFE$positivePartscr)+na.omit(PFE$certaintyPartscr)+na.omit(PFE$finupPartscr))/(.33*(na.omit(PFE$positivePartscr)+na.omit(PFE$certaintyPartscr)+na.omit(PFE$finupPartscr))+.33*(na.omit(PFE$negativePartscr)+na.omit(PFE$uncertaintyPartscr)+na.omit(PFE$findownPartscr))),"extend")
+PFEPNlog <-0.5*log((na.omit(PFE$positivePartscr)+1)/(na.omit(PFE$negativePartscr)+1))
+
+XOMBBr<-  na.fill(100*.33*(na.omit(XOM$positivePartscr)+na.omit(XOM$certaintyPartscr)+na.omit(XOM$finupPartscr))/(.33*(na.omit(XOM$positivePartscr)+na.omit(XOM$certaintyPartscr)+na.omit(XOM$finupPartscr))+.33*(na.omit(XOM$negativePartscr)+na.omit(XOM$uncertaintyPartscr)+na.omit(XOM$findownPartscr))),"extend")
+XOMPNlog <-0.5*log((na.omit(XOM$positivePartscr)+1)/(na.omit(XOM$negativePartscr)+1))
+
+
+
+adj_close <- merge(AAPLadj,ABBVadj,AMZNadj,DBadj,DISadj,FBadj,GOOGadj,GRFSadj,HALadj,HSBCadj,JPMadj,KOadj,MCDadj,MSFTadj,PFEadj,XOMadj)
+colnames(adj_close) <- symbols
+adj_close<-na.omit(adj_close)
+
+BBr <- merge(AAPLBBr,ABBVBBr,AMZNBBr,DBBBr,DISBBr,FBBBr,GOOGBBr,GRFSBBr,HALBBr,HSBCBBr,JPMBBr,KOBBr,MCDBBr,MSFTBBr,PFEBBr,XOMBBr)
+colnames(BBr) <- symbols
+#BBr<-na.omit(BBr)
+
+PNlog <- merge(AAPLPNlog,ABBVPNlog,AMZNPNlog,DBPNlog,DISPNlog,FBPNlog,GOOGPNlog,GRFSPNlog,HALPNlog,HSBCPNlog,JPMPNlog,KOPNlog,MCDPNlog,MSFTPNlog,PFEPNlog,XOMPNlog)
+colnames(PNlog) <- symbols
+#PNlog<-na.omit(PNlog)
+
+dataset<-list(adj_close,BBr,PNlog)
+names(dataset)<-c("adjusted","BBr","PNlog")
+
+data<- list(dataset)
+
+names(data) <- 'dataset'
+
+
+```
+
+
+
+```{r}
+library(portfolioBacktest)
+
+my_portfolio <- function(dataset) {
+  prices <- dataset$adjusted
+  N <- ncol(prices)
+  return(rep(1/N, N))
+}
+
+quintile_BBr <- function(dataset) {
+  X <- dataset$BBr
+  N <- ncol(X)
+  # design quintile portfolio
+  ranking <- sort(colMeans(X,na.rm=T), decreasing = TRUE, index.return = TRUE)$ix
+  w <- rep(0, N)
+  w[ranking[1:round(N/5)]] <- 1/round(N/5)
+  return(w)
+}
+
+quintile_PNlog <- function(dataset) {
+  X <- dataset$PNlog
+  N <- ncol(X)
+  # design quintile portfolio
+  ranking <- sort(colMeans(X,na.rm=T), decreasing = TRUE, index.return = TRUE)$ix
+  w <- rep(0, N)
+  w[ranking[1:round(N/5)]] <- 1/round(N/5)
+  return(w)
+}
+
+median7days_BBr <- function(dataset) {
+  X <- colMedians(tail(dataset$BBr,7),na.rm=T)
+  X[is.na(X)]<-0
+  N <- sum(X,na.rm = T)
+  w <- X/N
+  return(w)
+}
+
+median7days_PNlog <- function(dataset) {
+  X <- colMedians(tail(dataset$PNlog,7),na.rm=T)
+  X[is.na(X)]<-0
+  N <- sum(X,na.rm = T)
+  w <- X/N
+  return(w)
+}
+
+
+bt <- portfolioBacktest(list("Uniform" = my_portfolio), data)
+
+#backtestSelector(bt, portfolio_name = "Uniform", measures = c("Sharpe ratio", "max drawdown"))
+#backtestTable(bt, measures = c("Sharpe ratio", "max drawdown"))
+#bt_summary <- backtestSummary(bt)
+
+quintile_portfolio_fun <- function(dataset) {
+  X <- diff(log(dataset$adjusted))[-1]  # compute log returns
+  N <- ncol(X)
+  # design quintile portfolio
+  ranking <- sort(colMeans(X), decreasing = TRUE, index.return = TRUE)$ix
+  w <- rep(0, N)
+  w[ranking[1:round(N/5)]] <- 1/round(N/5)
+  return(w)
+}
+#quintile_portfolio_fun(adj_close.l)
+
+GMVP_portfolio_fun <- function(dataset) {
+  X <- diff(log(dataset$adjusted))[-1]  # compute log returns
+  Sigma <- cov(X)  # compute SCM
+  # design GMVP
+  w <- solve(Sigma, rep(1, nrow(Sigma)))
+  w <- abs(w)/sum(abs(w))
+  return(w)
+}
+
+#GMVP_portfolio_fun(adj_close.l)
+
+
+library(CVXR)
+Markowitz_portfolio_fun <- function(dataset) {
+  X <- diff(log(dataset$adjusted))[-1]  # compute log returns
+  mu <- colMeans(X)  # compute mean vector
+  Sigma <- cov(X)  # compute the SCM
+  # design mean-variance portfolio
+  w <- Variable(nrow(Sigma))
+  prob <- Problem(Maximize(t(mu) %*% w - 0.5*quad_form(w, Sigma)),
+                  constraints = list(w >= 0, sum(w) == 1))
+  result <- solve(prob)
+  return(as.vector(result$getValue(w)))
+}
+#Markowitz_portfolio_fun(adj_close.l)
+
+portfolios <- list("Quintile"  = quintile_portfolio_fun,
+                   "GMVP"      = GMVP_portfolio_fun,
+                   "Markowitz" = Markowitz_portfolio_fun,
+                   "Quintile BBr" = quintile_BBr,
+                   "Quintile PNlog"= quintile_PNlog,
+                   "median7days_BBr" = median7days_BBr,
+                   "median7days_PNlog" = median7days_PNlog)
+
+bt <- portfolioBacktest(portfolios, data, benchmark = c("uniform"))
+names(bt)
+#backtestSelector(bt, portfolio_name = "Quintile", 
+#                 measures = c("Sharpe ratio", "max drawdown"))
+
+backtestTable(bt, measures = c("Sharpe ratio", "max drawdown"))
+bt_sum <- backtestSummary(bt)
+names(bt_sum)
+bt_sum$performance_summary
+
+summaryTable(bt_sum, type = "DT", order_col = "Sharpe ratio", order_dir = "desc")
+summaryBarPlot(bt_sum, measures = c("Sharpe ratio", "max drawdown"))
+
+#backtestBoxPlot(bt, measure = "Sharpe ratio") 
+
+backtestChartCumReturns(bt, c("Quintile", "GMVP","Markowitz","uniform","Quintile BBr","Quintile PNlog","median7days_BBr","median7days_PNlog"))
+
+backtestChartDrawdown(bt, c("Quintile", "GMVP","Markowitz","uniform","Quintile BBr","Quintile PNlog","median7days_BBr","median7days_PNlog"))
+```
+
+
+
+```{r}
+
+library(ggfortify)
+
+# backtest without transaction costs
+bt <- portfolioBacktest(quintile_BBr, data)
+
+# backtest with costs of 15 bps
+bt_tc <- portfolioBacktest(quintile_BBr, data,
+                           cost = list(buy = 15e-4, sell = 15e-4))
+
+# plot wealth time series
+
+wealth<- cbind(bt$fun1$dataset$wealth,bt_tc$fun1$dataset$wealth)
+colnames(wealth) <- c("without transaction costs", "with transaction costs")
+
+autoplot(wealth, facets = FALSE, main = "Wealth") + 
+  theme(legend.title = element_blank()) +
+  theme(legend.position = c(0.8, 0.2)) +
+  scale_color_manual(values = c("red", "black"))
+
+
+bt <- portfolioBacktest(portfolios, data, benchmark = c("uniform"))
+names(bt)
+
+
+# define a portfolio with parameters "lookback", "quintile", and "average_type"
+
+quintilelookback_BBr <- function(dataset) {
+  X <- tail(dataset$BBr,lookback)
+  X[is.na(X)]<-0
+  mu <- switch(average_type,
+               "mean" = colMeans(X),
+               "median" = apply(X, MARGIN = 2, FUN = median))
+  idx <- sort(mu, decreasing = TRUE, index.return = TRUE)$ix
+  w <- rep(0, ncol(X))
+  w[idx[1:ceiling(quintile*ncol(X))]] <- 1/ceiling(quintile*ncol(X))
+  return(w)
+}
+
+# then automatically generate multiple versions with randomly chosen parameters
+portfolio_list <- genRandomFuns(portfolio_fun = quintilelookback_BBr, 
+                                params_grid = list(lookback = c(3, 5, 7, 14),
+                                                   quintile = 1:5 / 10,
+                                                   average_type = c("mean", "median")),
+                                name = "Quintile", 
+                                N_funs = 40)# Generating 40 functions out of a total of 40 possible combinations.
+
+
+
+bt <- portfolioBacktest(portfolio_list, data)
+plotPerformanceVsParams(bt)
+bt <- portfolioBacktest(portfolios, data, show_progress_bar = TRUE)
+
+portfun <- Markowitz_portfolio_fun
+
+```
+
+

@@ -9,6 +9,10 @@ navbar:
       href: Asset-Pricing-Problem-Sets.html
     - text: "Pricing Financial Derivatives I & II"
       href: Financial-Derivatives.html
+    - text: "High Frequency Trading"
+      href: hft.html
+    - text: "Machine Learning For Finance"
+      href: ml_fin.html
 output:
   html_document:
     theme: cosmo

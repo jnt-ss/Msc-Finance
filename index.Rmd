@@ -1,6 +1,14 @@
 ---
-title: "Welcome"
+title: "Home"
 output: html_document
 ---
 
-Welcome to my problem sets solution webpage. I have grouped the problem set by courses
+
+
+
+
+Welcome to my problem sets solution and projects webpage of the master of finance at GSE. I have grouped the problem sets and projects by courses
+
+
+
+![](https://www.barcelonagse.eu/sites/default/files/styles/bgse_image_content_image/public/news/gselogo-square640.jpg){width=20%}
